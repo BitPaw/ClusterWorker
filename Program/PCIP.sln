@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemResourceWrapper", "Sy
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DummyProgram", "DummyProgram\DummyProgram.vcxproj", "{D3B4C320-F4EF-401D-8400-FCCF0F90CFE4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UserInterface", "UserInterface\UserInterface.vcxproj", "{E11A54FB-C46C-465A-88D0-F238DB833056}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,14 @@ Global
 		{D3B4C320-F4EF-401D-8400-FCCF0F90CFE4}.Release|x64.Build.0 = Release|x64
 		{D3B4C320-F4EF-401D-8400-FCCF0F90CFE4}.Release|x86.ActiveCfg = Release|Win32
 		{D3B4C320-F4EF-401D-8400-FCCF0F90CFE4}.Release|x86.Build.0 = Release|Win32
+		{E11A54FB-C46C-465A-88D0-F238DB833056}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{E11A54FB-C46C-465A-88D0-F238DB833056}.Debug|x64.ActiveCfg = Debug|x64
+		{E11A54FB-C46C-465A-88D0-F238DB833056}.Debug|x64.Build.0 = Debug|x64
+		{E11A54FB-C46C-465A-88D0-F238DB833056}.Debug|x86.ActiveCfg = Debug|x64
+		{E11A54FB-C46C-465A-88D0-F238DB833056}.Release|Any CPU.ActiveCfg = Release|x64
+		{E11A54FB-C46C-465A-88D0-F238DB833056}.Release|x64.ActiveCfg = Release|x64
+		{E11A54FB-C46C-465A-88D0-F238DB833056}.Release|x64.Build.0 = Release|x64
+		{E11A54FB-C46C-465A-88D0-F238DB833056}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
