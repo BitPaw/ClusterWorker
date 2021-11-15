@@ -6,3 +6,4 @@
 	"$(SolutionDir)Dependencies/lib32/" for x86 Systems
 	"$(SolutionDir)Dependencies/lib64/" for x64 Systems
     You need to change the platform configuartion above for every mode!
+6.) Add "SystemResource.lib" under Linker->Input->Additional Dependencies
