@@ -1,0 +1,8 @@
+1.) Right-Side Projekt->Rightclick->Settings
+2.) Select above "All Configurations" AND "All PLatforms"
+3.) Go to "VC++ Folders"
+4.) under "Include folders" add "$(SolutionDir)Dependencies/include" 
+5.) under "Libary folders" add 
+	"$(SolutionDir)Dependencies/lib32/" for x86 Systems
+	"$(SolutionDir)Dependencies/lib64/" for x64 Systems
+    You need to change the platform configuartion above for every mode!
