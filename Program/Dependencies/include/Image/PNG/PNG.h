@@ -6,6 +6,7 @@
 #include "../IImageFormat.h"
 
 #include "../../Compression/ZLIB/ZLIBHeader.h"
+#include "PNGInterlaceMethod.h"
 
 namespace BF
 {
@@ -30,12 +31,12 @@ namespace BF
 		PNGColorType ColorType;
 		unsigned char CompressionMethod;
 		unsigned char FilterMethod;
-		unsigned char InterlaceMethod;
+		PNGInterlaceMethod InterlaceMethod;
 		//---------------------------------------------------------------------------
 
 		//---[ IDAT - Image Data (Compressed)]---------------------------------------
-		size_t ZLIBHeaderListSize;
-		ZLIBHeader* ZLIBHeaderList;
+		//size_t ZLIBHeaderListSize;
+		//ZLIBHeader* ZLIBHeaderList;
 		//---------------------------------------------------------------------------
 
 		//---[ PLTE - Palette ]------------------------------------------------------
@@ -58,11 +59,16 @@ namespace BF
 		//---------------------------------------------------------------------------
 
 		//---[ bKGD - BackgroundColor]-----------------------------------------------
-		// Depends on colorType
+		unsigned short BackgroundColorGreyScale; 
+		unsigned short BackgroundColorRed;
+		unsigned short BackgroundColorGreen;
+		unsigned short BackgroundColorBlue;
+		unsigned char BackgroundColorPaletteIndex;
 		//---------------------------------------------------------------------------
 
 		//---[ hIST - PaletteHistogram]----------------------------------------------
-
+		size_t ColorFrequencyListSize;
+		unsigned short* ColorFrequencyList;
 		//---------------------------------------------------------------------------
 
 		//---[ tRNS - Transparency ]-------------------------------------------------
@@ -87,7 +93,12 @@ namespace BF
 		//---------------------------------------------------------------------------
 
 		//---[ tIME - xxxxxxxxxxxxxxxxxxxxxxx ]--------------------------------------
-
+		unsigned short Year;
+		unsigned char Month;
+		unsigned char Day;
+		unsigned char Hour;
+		unsigned char Minute;
+		unsigned char Second;
 		//---------------------------------------------------------------------------
 
 		//---[ tEXt - xxxxxxxxxxxxxxxxxxxxxxx ]--------------------------------------
@@ -114,11 +125,16 @@ namespace BF
 
 		//---------------------------------------------------------------------------
 
+		size_t PixelDataSize;
+		Byte* PixelData;
+
+		unsigned int BitsPerPixel();
+
 		FileActionResult Load(const char* filePath);
 		FileActionResult Save(const char* filePath);
 
 		FileActionResult ConvertTo(Image& image);
-		FileActionResult ConvertFrom(Image& image);
+		FileActionResult ConvertFrom(Image& image);		
 
 		void PrintData();
 	};

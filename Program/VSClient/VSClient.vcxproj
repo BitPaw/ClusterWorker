@@ -73,22 +73,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)Dependencies/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Dependencies/lib32/;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Dependencies/lib32Debug/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)Dependencies/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Dependencies/lib32/;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Dependencies/lib32Release/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)Dependencies/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Dependencies/lib64/;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Dependencies/lib64Debug/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)Dependencies/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Dependencies/lib64/;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Dependencies/lib64Release/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -163,11 +163,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="VSClientSystem.cpp" />
     <ClCompile Include="VSClient.cpp" />
+    <ClCompile Include="VSClientState.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="VSMessageToken.cpp" />
+    <ClCompile Include="VSMessageType.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VSClientSystem.h" />
+    <ClInclude Include="VSClient.h" />
+    <ClInclude Include="VSClientState.h" />
+    <ClInclude Include="VSMessageToken.h" />
+    <ClInclude Include="VSMessageType.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
