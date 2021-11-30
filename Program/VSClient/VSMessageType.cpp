@@ -2,10 +2,11 @@
 
 #define MessageInvalidID '?'
 #define MessageNameID 'N'
-#define MessageGetID 'G'
-#define MessagePutID 'P'
+#define MessageAnswerID 'A'
+#define MessageQuestionID 'Q'
 #define MessageExecuteID 'E'
 #define MessageUploadID 'U'
+#define MessagePerformanceHardwareID 'P'
 
 VS::VSMessageType VS::ConvertMessageType(unsigned char messageType)
 {
@@ -14,8 +15,8 @@ VS::VSMessageType VS::ConvertMessageType(unsigned char messageType)
 		case MessageNameID:
 			return VS::VSMessageType::Name;
 
-		case MessageGetID: 
-			return VS::VSMessageType::Get;
+		case MessageAnswerID: 
+			return VS::VSMessageType::Answer;
 
 		case MessageExecuteID:
 			return VS::VSMessageType::Execute;
@@ -23,8 +24,11 @@ VS::VSMessageType VS::ConvertMessageType(unsigned char messageType)
 		case MessageUploadID:
 			return VS::VSMessageType::Upload;
 
-		case MessagePutID: 
-			return VS::VSMessageType::Put;
+		case MessageQuestionID: 
+			return VS::VSMessageType::Question;
+
+		case MessagePerformanceHardwareID:
+			return VS::VSMessageType::PerformanceHardware;
 
 		default: return VS::VSMessageType::Invalid;
 			break;
@@ -42,16 +46,19 @@ unsigned char VS::ConvertMessageType(VSMessageType messageType)
 		case VS::VSMessageType::Name:
 			return MessageNameID;
 
-		case VS::VSMessageType::Get:
-			return MessageGetID;
+		case VS::VSMessageType::Answer:
+			return MessageAnswerID;
 
-		case VS::VSMessageType::Put:
-			return MessagePutID;
+		case VS::VSMessageType::Question:
+			return MessageQuestionID;
 
 		case VS::VSMessageType::Execute:
 			return MessageExecuteID;
 
 		case VS::VSMessageType::Upload:
 			return MessageUploadID;
+
+		case VS::VSMessageType::PerformanceHardware:
+			return MessagePerformanceHardwareID;
 	}
 }

@@ -11,8 +11,10 @@ namespace VS
 		Execute,
 		Upload,
 
-		Get,
-		Put
+		Answer,
+		Question,
+
+		PerformanceHardware
 	};
 
 	VSMessageType ConvertMessageType(unsigned char messageType);

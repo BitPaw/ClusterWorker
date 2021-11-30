@@ -105,12 +105,11 @@ void VS::VSClient::OnConnectionEstablished(int socketID)
     */
 
 
-
     DWORD userNameLength = UNLEN;
     char userName[UNLEN + 1];
 
     bool userNameLengthResult = GetUserNameA(userName, &userNameLength);
-
+    
     VSMessageToken token(VSMessageType::Name, userNameLength, userName);
 
     SentMessageToken(token);
@@ -208,11 +207,11 @@ void VS::VSClient::OnMessageTokenRecived(VSMessageToken messageToken, int socket
         {
             break;
         }
-        case VS::VSMessageType::Get:
+        case VS::VSMessageType::Answer:
         {
             break;
         }
-        case VS::VSMessageType::Put:
+        case VS::VSMessageType::Question:
         {
             break;
         }
