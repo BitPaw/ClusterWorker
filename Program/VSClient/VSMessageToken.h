@@ -20,5 +20,7 @@ namespace VS
 
 		size_t Parse(char* dataInput);
 		size_t UnParse(char * dataOutPut);
+
+		static bool CouldBeToken(unsigned char byte);
 	};
 }

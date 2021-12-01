@@ -15,6 +15,7 @@ namespace VS
 		Execute, // Client Shall start the executable
 
 		Updating, // Client updates application
+				
 
 		Stop // Client is now stopping
 	};

@@ -26,6 +26,8 @@ namespace VS
 		unsigned short Port;
 
 		char TargetExecutableFilePath[260];
+		FILE* _fileBuffer = nullptr;
+		size_t FileBufferSize = 0;
 
 		VSClient();
 
@@ -33,27 +35,27 @@ namespace VS
 		void PortSet(const char* port);
 		void PortSet(unsigned short port);
 
+		bool IsRunning() { return State != VS::VSClientState::Stop; }
+		void StateChange(VSClientState clientState);
+
 		void StartConnectingLoop();
 		void StartConnectingLoop(const char* ipString, const char* portString);
 
+
+		//---<Events>----------------------------------------------------------
 		void OnConnectionLinked(int socketID);
 		void OnConnectionListening(int socketID);
 		void OnConnectionEstablished(int socketID);
 		void OnConnectionTerminated(int socketID);
 		void OnMessageSend(int socketID, const char* message, size_t messageSize);
 		void OnMessageReceive(int socketID, const char* message, size_t messageSize);
-
-		bool IsRunning() { return State != VS::VSClientState::Stop; }
-
-		void StateChange(VSClientState clientState);		
-
+		//---------------------------------------------------------------------
 
 		//---<Tokens>----------------------------------------------------------
 		void SentMessageToken(VSMessageToken messageToken);
 		void SentMessageToken(VSMessageToken* messageTokenList, size_t messageTokenListSize);
 		void OnMessageTokenRecived(VSMessageToken messageToken, int socketID);
 		//---------------------------------------------------------------------
-
 
 		//---<External Execute>----------------------
 		void ProgramExecute();

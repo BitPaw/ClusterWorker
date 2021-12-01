@@ -14,6 +14,8 @@ namespace VS
 		Answer,
 		Question,
 
+		Finished, // Tag to mark transaction complete
+
 		PerformanceHardware
 	};
 

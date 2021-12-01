@@ -127,32 +127,65 @@ void VS::VSClient::OnMessageSend(int socketID, const char* message, size_t messa
     printf("[Client][i][%i] Message:%s (%i Bytes).\n", socketID, message, messageSize);
 }
 
+
 void VS::VSClient::OnMessageReceive(int socketID, const char* message, size_t messageSize)
 {
-    printf("[Server][i][%i] Message:%s (%i Bytes).\n", socketID, message, messageSize);
+   // printf("[Server][i][%i] Message:%s (%i Bytes).\n", socketID, message, messageSize);
+    printf("[Server][i][%i] Message (%i Bytes).\n", socketID,  messageSize);   
 
-
-    OnMessageTokenRecived(VSMessageToken(VSMessageType::Execute, 0, 0), -1);
-
-    /*
-
-    if (messageSize <= 4)
+    switch (State)
     {
-        return;
-    }
-
-    for (size_t i = 0; i < messageSize; )
-    {
-        VSMessageToken messageToken;
-
-        i += messageToken.Parse((char*)message);
-
-        if (messageToken.Type != VSMessageType::Invalid)
+        case VSClientState::Communicating:
         {
-            OnMessageTokenRecived(messageToken, socketID);
-        }     
-    }*/
+            if (messageSize <= 4)
+            {
+                return;
+            }
 
+            for (size_t i = 0; i < messageSize - 1; )
+            {
+                VSMessageToken messageToken;
+
+                i += messageToken.Parse((char*)message);
+
+                if (messageToken.Type != VSMessageType::Invalid)
+                {
+                    OnMessageTokenRecived(messageToken, socketID);
+                    //OnMessageTokenRecived(VSMessageToken(VSMessageType::Execute, 0, 0), -1);
+                }
+            }
+  
+            break;
+        }
+        case VSClientState::Updating:
+        {            
+            fwrite(message, sizeof(char), messageSize, _fileBuffer);
+
+            FileBufferSize += messageSize;
+
+            if (messageSize < SocketBufferSize)
+            {
+                size_t writtenBytes = FileBufferSize;
+
+                if (_fileBuffer)
+                {
+                    fclose(_fileBuffer);
+
+                    _fileBuffer = nullptr;     
+                    FileBufferSize = 0;
+                }
+
+                printf("[System] File sucessfuly send! %i Bytes\n", writtenBytes);
+
+                OnMessageTokenRecived(VSMessageToken(VSMessageType::Finished, 0, nullptr), socketID);
+            }
+
+            break;
+        }
+
+        default:
+            break;
+    }   
 }
 
 void VS::VSClient::StateChange(VSClientState clientState)
@@ -198,13 +231,22 @@ void VS::VSClient::OnMessageTokenRecived(VSMessageToken messageToken, int socket
             break;
         }
         case VS::VSMessageType::Execute:
-        {
-            ExecutableFilePathSet((char*)"DummyProgram.exe");
+        {            
             ProgramExecute();
             break;
         }
         case VS::VSMessageType::Upload:
         {
+            StateChange(VSClientState::Updating);
+            ExecutableFilePathSet(messageToken.Data);
+
+            _fileBuffer = fopen(TargetExecutableFilePath, "wb");
+            break;
+        }
+        case VS::VSMessageType::Finished:
+        {
+     
+
             break;
         }
         case VS::VSMessageType::Answer:

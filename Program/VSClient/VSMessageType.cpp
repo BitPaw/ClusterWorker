@@ -7,11 +7,15 @@
 #define MessageExecuteID 'E'
 #define MessageUploadID 'U'
 #define MessagePerformanceHardwareID 'P'
+#define MessageFinishedID 'F'
 
 VS::VSMessageType VS::ConvertMessageType(unsigned char messageType)
 {
 	switch (messageType)
 	{
+		case MessageFinishedID:
+			return VS::VSMessageType::Finished;
+
 		case MessageNameID:
 			return VS::VSMessageType::Name;
 
@@ -30,8 +34,8 @@ VS::VSMessageType VS::ConvertMessageType(unsigned char messageType)
 		case MessagePerformanceHardwareID:
 			return VS::VSMessageType::PerformanceHardware;
 
-		default: return VS::VSMessageType::Invalid;
-			break;
+		default: 
+			return VS::VSMessageType::Invalid;
 	}
 }
 
@@ -42,6 +46,9 @@ unsigned char VS::ConvertMessageType(VSMessageType messageType)
 		default:
 		case VS::VSMessageType::Invalid:
 			return MessageInvalidID;
+
+		case VS::VSMessageType::Finished:
+			return MessageFinishedID;
 
 		case VS::VSMessageType::Name:
 			return MessageNameID;
