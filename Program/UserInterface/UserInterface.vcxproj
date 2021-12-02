@@ -56,20 +56,20 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <IncludePath>$(SolutionDir)Dependencies/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Dependencies/lib64/;$(SolutionDir)Dependencies/lib32/;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Dependencies/lib64Debug/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <IncludePath>$(SolutionDir)Dependencies/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Dependencies/lib64/;$(SolutionDir)Dependencies/lib32/;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Dependencies/lib64Release/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalDependencies>SystemResource.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SystemResource.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>SystemResource.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SystemResource.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
