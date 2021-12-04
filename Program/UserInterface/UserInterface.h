@@ -3,10 +3,11 @@
 #include <QtWidgets/QMainWindow>
 #include <Network/Server.h>
 #include <Network/ISocketListener.h>
+#include <Network/IServerListener.h>
 
 #include "ui_UserInterface.h"
 
-class UserInterface : public QMainWindow, public BF::ISocketListener
+class UserInterface : public QMainWindow, public BF::ISocketListener, public BF::IServerListener
 {
     Q_OBJECT
 
@@ -15,17 +16,28 @@ public:
    
 public slots:
     void OnButtonOpenServerClicked();
+    void OnButtonDeployApplicationClicked();
+    void OnButtonClientFileSelectClicked();
+    void OnButtonServerFileSelectClicked();
+    void OnButtonWorkFileSelectClicked();
+
 private:
     Ui::UserInterfaceClass ui;
 
     BF::Server _server;
+
+    void OpenFileAndSelect(QLineEdit& lineEdit);
 
     //---<Geerbt über ISocketListener>-----------------------------------------
     virtual void OnConnectionLinked(int socketID) override;
     virtual void OnConnectionListening(int socketID) override;
     virtual void OnConnectionEstablished(int socketID) override;
     virtual void OnConnectionTerminated(int socketID) override;
-    virtual void OnMessageSend(int socketID, const char* message, size_t messageSize) override;
-    virtual void OnMessageReceive(int socketID, const char* message, size_t messageSize) override;
+    virtual void OnMessageSend(BF::IOSocketMessage socketMessage) override;
+    virtual void OnMessageReceive(BF::IOSocketMessage socketMessage) override;
+
+    // Geerbt über IServerListener
+    virtual void OnClientConnected(BF::Client& client) override;
+    virtual void OnClientDisconnected(BF::Client& client) override;
     //-------------------------------------------------------------------------
 };

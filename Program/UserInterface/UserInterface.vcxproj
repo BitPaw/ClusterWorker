@@ -99,11 +99,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="UserInterface.cpp" />
     <QtRcc Include="UserInterface.qrc" />
     <QtUic Include="UserInterface.ui" />
-    <QtMoc Include="UserInterface.h" />
-    <ClCompile Include="UserInterface.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="UserInterface.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

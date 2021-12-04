@@ -14,7 +14,7 @@ VS::VSClient::VSClient()
 
 	Port = 0;
 
-    _client.Callback = this;
+    _client.EventCallBackSocket = this;
 }
 
 void VS::VSClient::IPSet(const char* ip)
@@ -122,48 +122,47 @@ void VS::VSClient::OnConnectionTerminated(int socketID)
     StateChange(VSClientState::IDLE);
 }
 
-void VS::VSClient::OnMessageSend(int socketID, const char* message, size_t messageSize)
+void VS::VSClient::OnMessageSend(BF::IOSocketMessage socketMessage)
 {
-    printf("[Client][i][%i] Message:%s (%i Bytes).\n", socketID, message, messageSize);
+    printf("[Client][i][%i] Send (%i Bytes).\n", socketMessage.SocketID, socketMessage.MessageSize);
 }
 
-
-void VS::VSClient::OnMessageReceive(int socketID, const char* message, size_t messageSize)
+void VS::VSClient::OnMessageReceive(BF::IOSocketMessage socketMessage)
 {
-   // printf("[Server][i][%i] Message:%s (%i Bytes).\n", socketID, message, messageSize);
-    printf("[Server][i][%i] Message (%i Bytes).\n", socketID,  messageSize);   
+    // printf("[Server][i][%i] Message:%s (%i Bytes).\n", socketID, message, messageSize);
+    printf("[Server][i][%i] Received (%i Bytes).\n", socketMessage.SocketID, socketMessage.MessageSize);
 
     switch (State)
     {
         case VSClientState::Communicating:
         {
-            if (messageSize <= 4)
+            if (socketMessage.MessageSize <= 4)
             {
                 return;
             }
 
-            for (size_t i = 0; i < messageSize - 1; )
+            for (size_t i = 0; i < socketMessage.MessageSize - 1; )
             {
                 VSMessageToken messageToken;
 
-                i += messageToken.Parse((char*)message);
+                i += messageToken.Parse(socketMessage.Message);
 
                 if (messageToken.Type != VSMessageType::Invalid)
                 {
-                    OnMessageTokenRecived(messageToken, socketID);
+                    OnMessageTokenRecived(messageToken, socketMessage.SocketID);
                     //OnMessageTokenRecived(VSMessageToken(VSMessageType::Execute, 0, 0), -1);
                 }
             }
-  
+
             break;
         }
         case VSClientState::Updating:
-        {            
-            fwrite(message, sizeof(char), messageSize, _fileBuffer);
+        {
+            fwrite(socketMessage.Message, sizeof(char), socketMessage.MessageSize, _fileBuffer);
 
-            FileBufferSize += messageSize;
+            FileBufferSize += socketMessage.MessageSize;
 
-            if (messageSize < SocketBufferSize)
+            if (socketMessage.MessageSize < SocketBufferSize)
             {
                 size_t writtenBytes = FileBufferSize;
 
@@ -171,13 +170,13 @@ void VS::VSClient::OnMessageReceive(int socketID, const char* message, size_t me
                 {
                     fclose(_fileBuffer);
 
-                    _fileBuffer = nullptr;     
+                    _fileBuffer = nullptr;
                     FileBufferSize = 0;
                 }
 
                 printf("[System] File sucessfuly send! %i Bytes\n", writtenBytes);
 
-                OnMessageTokenRecived(VSMessageToken(VSMessageType::Finished, 0, nullptr), socketID);
+                OnMessageTokenRecived(VSMessageToken(VSMessageType::Finished, 0, nullptr), socketMessage.SocketID);
             }
 
             break;
@@ -185,7 +184,7 @@ void VS::VSClient::OnMessageReceive(int socketID, const char* message, size_t me
 
         default:
             break;
-    }   
+    }
 }
 
 void VS::VSClient::StateChange(VSClientState clientState)
@@ -284,3 +283,4 @@ void VS::VSClient::OnProgramExecuted(bool succesful, size_t returnResult, BF::Er
         errorCode
     );
 }
+

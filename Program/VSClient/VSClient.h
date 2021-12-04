@@ -47,8 +47,8 @@ namespace VS
 		void OnConnectionListening(int socketID);
 		void OnConnectionEstablished(int socketID);
 		void OnConnectionTerminated(int socketID);
-		void OnMessageSend(int socketID, const char* message, size_t messageSize);
-		void OnMessageReceive(int socketID, const char* message, size_t messageSize);
+		void OnMessageSend(BF::IOSocketMessage socketMessage);
+		void OnMessageReceive(BF::IOSocketMessage socketMessage);
 		//---------------------------------------------------------------------
 
 		//---<Tokens>----------------------------------------------------------
@@ -62,7 +62,7 @@ namespace VS
 	
 		void ExecutableFilePathSet(char* targetExecutableFilePath);
 
-		void OnProgramExecuted(bool succesful, size_t returnResult, BF::ErrorCode errorCode);
+		void OnProgramExecuted(bool succesful, size_t returnResult, BF::ErrorCode errorCode);	
 		//---------------------------------------------------------------------
 	};
 }

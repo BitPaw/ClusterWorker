@@ -32,7 +32,7 @@ namespace BF
 	{
 		private:
 		int GetAdressFamily(IPVersion ipVersion);
-		SocketActionResult SetupAdress(IPVersion ipVersion, const  char* ip, unsigned short port);
+		SocketActionResult SetupAdress(IPVersion ipVersion, const char* ip, unsigned short port);
 
 #if defined(OSWindows)
 		SocketActionResult WindowsSocketAgentStartup();
@@ -45,7 +45,7 @@ namespace BF
 		char BufferMessage[SocketBufferSize];
 		IPVersion IPMode;
 
-		ISocketListener* Callback;
+		ISocketListener* EventCallBackSocket;
 		std::thread* CommunicationThread;	
 
 		struct sockaddr_in AdressIPv4; // Used only in IPv4
@@ -60,11 +60,14 @@ namespace BF
 
 		char IsCurrentlyUsed();
 
+		static bool ResolveDomainName(const char* domainName, char* ip);
+
 		void Close();
 		void AwaitConnection(IOSocket& clientSocket);
 		SocketActionResult Open(IPVersion ipVersion, unsigned short port);	
 		SocketActionResult Connect(IOSocket& serverSocket, const char* ipAdress, unsigned short port);
 		SocketActionResult Receive();
 		SocketActionResult Send(const char* message, size_t messageLength);
+		SocketActionResult SendFile(const char* filePath, size_t sendBufferSize = 2048);
 	};
 }
