@@ -1,4 +1,9 @@
 <RCC>
-    <qresource prefix="UserInterface">
-    </qresource>
+  <qresource prefix="UserInterface">
+    <file>IconClientCalc.png</file>
+    <file>BackGround.png</file>
+    <file>IconEndFile.png</file>
+    <file>IconServerCalc.png</file>
+    <file>IconStartFile.png</file>
+  </qresource>
 </RCC>

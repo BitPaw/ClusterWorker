@@ -10,15 +10,20 @@ UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
     _server.EventCallBackServer = this;
 
     ui.TextBoxPort->setText("25666");
-    ui.TableClientList->setColumnWidth(0, 10);
+    //ui.TableClientList->setColumnWidth(0, 10);
+
+    ui.ProgressBarWork->setValue(0);
+    ui.ProgressDeployApplication->setValue(0);
 
     connect(ui.ButtonOpenServer, &QPushButton::clicked, this, &UserInterface::OnButtonOpenServerClicked);
 
+    connect(ui.ButtonInputFileSelect, &QPushButton::clicked, this, &UserInterface::OnButtonInputFileSelectClicked);
     connect(ui.ButtonClientFileSelect, &QPushButton::clicked, this, &UserInterface::OnButtonClientFileSelectClicked);
     connect(ui.ButtonServerFileSelect, &QPushButton::clicked, this, &UserInterface::OnButtonServerFileSelectClicked);
+    connect(ui.ButtonResultFileSelect, &QPushButton::clicked, this, &UserInterface::OnButtonResultFileSelectClicked);
+
     connect(ui.ButtonDeployApplication, &QPushButton::clicked, this, &UserInterface::OnButtonDeployApplicationClicked);
 
-    connect(ui.ButtonWorkFileSelect, &QPushButton::clicked, this, &UserInterface::OnButtonWorkFileSelectClicked);
 }
 
 void UserInterface::OnButtonOpenServerClicked()
@@ -26,7 +31,13 @@ void UserInterface::OnButtonOpenServerClicked()
     QString& portText = ui.TextBoxPort->text();
     unsigned short port = portText.toInt();
 
-    _server.Start(port);
+    BF::SocketActionResult result = _server.Start(port);
+
+    /*
+    if (result == BF::SocketActionResult::Successful)
+    {
+        ui.ButtonOpenServer->setDisabled(true);        
+    }*/
 }
 
 void UserInterface::OnButtonDeployApplicationClicked()
@@ -72,12 +83,17 @@ void UserInterface::OnButtonDeployApplicationClicked()
     }   
 }
 
+void UserInterface::OnButtonResultFileSelectClicked()
+{
+    OpenFileAndSelect(*ui.TextBoxResultFile);
+}
+
 void UserInterface::OnButtonClientFileSelectClicked()
 {
     OpenFileAndSelect(*ui.TextBoxClientFile);
 }
 
-void UserInterface::OnButtonWorkFileSelectClicked()
+void UserInterface::OnButtonInputFileSelectClicked()
 {
     OpenFileAndSelect(*ui.TextBoxWorkFilePath);    
 }

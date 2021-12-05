@@ -16,10 +16,13 @@ public:
    
 public slots:
     void OnButtonOpenServerClicked();
-    void OnButtonDeployApplicationClicked();
+
+    void OnButtonResultFileSelectClicked();
     void OnButtonClientFileSelectClicked();
     void OnButtonServerFileSelectClicked();
-    void OnButtonWorkFileSelectClicked();
+    void OnButtonInputFileSelectClicked();
+
+    void OnButtonDeployApplicationClicked();
 
 private:
     Ui::UserInterfaceClass ui;
