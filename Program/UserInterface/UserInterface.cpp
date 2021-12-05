@@ -26,7 +26,7 @@ void UserInterface::OnButtonOpenServerClicked()
     QString& portText = ui.TextBoxPort->text();
     unsigned short port = portText.toInt();
 
-    _server.Start(BF::IPVersion::IPVersion4, port);
+    _server.Start(port);
 }
 
 void UserInterface::OnButtonDeployApplicationClicked()
@@ -40,21 +40,34 @@ void UserInterface::OnButtonDeployApplicationClicked()
 
         if (isPathToExistingFile)
         {
-            wchar_t filePathW[260];
-            char filePath[260];
+            wchar_t filePathW[_MAX_FNAME];
+            char filePath[_MAX_FNAME];
+            char fileName[_MAX_FNAME];
+            char exten[_MAX_EXT];
+            char message[270];
 
-            memset(filePathW, 0, 260 * sizeof(wchar_t));
+            memset(filePathW, 0, _MAX_FNAME * sizeof(wchar_t));
+            memset(message, 0, 270 * sizeof(char));
 
             size_t sizeOfWchar = filePathQ.toWCharArray(filePathW);
-            size_t bytesToSend = sprintf(filePath, "U####%ls", filePathW);
+            sprintf(filePath, "%ls", filePathW);
 
-            filePath[1] = sizeOfWchar & 0xFF000000;
-            filePath[2] = sizeOfWchar & 0x00FF0000;
-            filePath[3] = sizeOfWchar & 0x0000FF00;
-            filePath[4] = sizeOfWchar & 0x000000FF;
-                        
-            _server.Send(filePath, bytesToSend * sizeof(char)); // You ARE the server. You send stuff to yourself!
-            _server.SendFile(filePath); // filePath is not the filePath, bad naming!
+            {
+                char drive[_MAX_DRIVE];
+                char dir[_MAX_DIR];             
+
+                _splitpath(filePath,drive, dir, fileName, exten);
+            }        
+
+            size_t bytesToSend = sprintf(message, "U####%s%s", fileName, exten);
+
+            message[1] = (sizeOfWchar & 0xFF000000) >> 24;
+            message[2] = (sizeOfWchar & 0x00FF0000) >> 16;
+            message[3] = (sizeOfWchar & 0x0000FF00) >> 8;
+            message[4] = sizeOfWchar & 0x000000FF;
+
+            _server.BroadcastMessageToClients(message, bytesToSend + 1 * sizeof(char));      
+            _server.BroadcastFileToClients(filePath);
         }      
     }   
 }

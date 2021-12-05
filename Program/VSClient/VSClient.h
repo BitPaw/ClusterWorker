@@ -11,6 +11,7 @@
 #include <File/Program.h>
 #include <ErrorCode.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 namespace VS
 {

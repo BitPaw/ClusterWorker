@@ -6,7 +6,7 @@ using namespace BF;
 
 
 //---<Makros>--------------------------
-#define VSDefaultIP "127.0.0.1"
+#define VSDefaultIP "localhost"
 #define VSDefaultPort 25666
 
 #define VSInvalidParameters -1
