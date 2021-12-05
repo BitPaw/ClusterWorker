@@ -9,7 +9,7 @@
 
 ## Bilder
 
-![Image](Design/Solution_v2.png)
+![Image](Design/Solution_v3.png)
 
 ## User - Protocol
 ### Both
@@ -20,3 +20,6 @@
 - Send client siede executable to all Clients.
 - Initiate Server side and start creating problems to solve.
 - The Sever will delegate everything, wait until finished. 
+
+## CurrentUI (Test/Preview Version)
+![Image](Design/CurrentUI.png)
