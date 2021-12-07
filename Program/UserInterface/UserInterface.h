@@ -30,6 +30,9 @@ private:
     BF::Server _server;
 
     void OpenFileAndSelect(QLineEdit& lineEdit);
+    void ButtonEnable(QPushButton& button, bool enable);
+
+    void CheckDeployButton();
 
     //---<Geerbt über ISocketListener>-----------------------------------------
     virtual void OnConnectionLinked(int socketID) override;

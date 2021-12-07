@@ -15,6 +15,10 @@ UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
     ui.ProgressBarWork->setValue(0);
     ui.ProgressDeployApplication->setValue(0);
 
+    ui.ComboBoxIPMode->addItem("IPv4");
+    ui.ComboBoxIPMode->addItem("IPv6");
+    ui.ComboBoxIPMode->addItem("Both");
+
     connect(ui.ButtonOpenServer, &QPushButton::clicked, this, &UserInterface::OnButtonOpenServerClicked);
 
     connect(ui.ButtonInputFileSelect, &QPushButton::clicked, this, &UserInterface::OnButtonInputFileSelectClicked);
@@ -24,6 +28,7 @@ UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
 
     connect(ui.ButtonDeployApplication, &QPushButton::clicked, this, &UserInterface::OnButtonDeployApplicationClicked);
 
+    CheckDeployButton();
 }
 
 void UserInterface::OnButtonOpenServerClicked()
@@ -86,21 +91,29 @@ void UserInterface::OnButtonDeployApplicationClicked()
 void UserInterface::OnButtonResultFileSelectClicked()
 {
     OpenFileAndSelect(*ui.TextBoxResultFile);
+
+    CheckDeployButton();
 }
 
 void UserInterface::OnButtonClientFileSelectClicked()
 {
     OpenFileAndSelect(*ui.TextBoxClientFile);
+
+    CheckDeployButton();
 }
 
 void UserInterface::OnButtonInputFileSelectClicked()
 {
     OpenFileAndSelect(*ui.TextBoxWorkFilePath);    
+
+    CheckDeployButton();
 }
 
 void UserInterface::OnButtonServerFileSelectClicked()
 {
     OpenFileAndSelect(*ui.TextBoxServerFile);
+
+    CheckDeployButton();
 }
 
 void UserInterface::OnClientDisconnected(BF::Client& client)
@@ -185,4 +198,33 @@ void UserInterface::OpenFileAndSelect(QLineEdit& lineEdit)
     {
         lineEdit.setText(filePath);
     }
+}
+
+void UserInterface::ButtonEnable(QPushButton& button, bool enable)
+{
+    QStyle* style = button.style();
+    char buffer[1024];
+    
+    
+   // char* color = enable ? "555555" : "CDCDCD";
+
+  //  sprintf(buffer, "color: white;\nBackGround-Color: #%s;", color);
+
+    char* color = enable ? "00FF00" : "FF0000";
+
+    sprintf(buffer, "color: #%s;\nBackGround-Color: #555555;", color);
+
+    button.setStyleSheet(buffer);
+}
+
+void UserInterface::CheckDeployButton()
+{
+    bool a = !ui.TextBoxResultFile->text().isEmpty();
+    bool b = !ui.TextBoxServerFile->text().isEmpty();
+    bool c = !ui.TextBoxWorkFilePath->text().isEmpty();
+    bool d = !ui.TextBoxClientFile->text().isEmpty();
+
+    bool enable = a && b && c && d;
+
+    ButtonEnable(*ui.ButtonDeployApplication, enable);
 }
