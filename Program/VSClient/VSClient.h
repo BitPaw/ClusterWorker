@@ -15,9 +15,10 @@
 
 namespace VS
 {
-	struct VSClient : public BF::ISocketListener, public BF::ProgramExecuteResultListener
+	struct VSClient :	public BF::ISocketListener, 
+						public BF::IClientListener, 
+						public BF::ProgramExecuteResultListener
 	{
-
 		private:
 		BF::Client _client;
 
@@ -44,12 +45,15 @@ namespace VS
 
 
 		//---<Events>----------------------------------------------------------
-		void OnConnectionLinked(int socketID);
-		void OnConnectionListening(int socketID);
-		void OnConnectionEstablished(int socketID);
-		void OnConnectionTerminated(int socketID);
+		void OnConnectionLinked(const BF::IPAdressInfo& adressInfo);
+		void OnConnectionListening(const BF::IPAdressInfo& adressInfo);
+		void OnConnectionEstablished(const BF::IPAdressInfo& adressInfo);
+		void OnConnectionTerminated(const BF::IPAdressInfo& adressInfo);
 		void OnMessageSend(BF::IOSocketMessage socketMessage);
 		void OnMessageReceive(BF::IOSocketMessage socketMessage);
+		void OnConnectedToServer(BF::IPAdressInfo& adressInfo);
+		void OnSocketCreating(const BF::IPAdressInfo& adressInfo, bool& use);
+		void OnSocketCreated(const BF::IPAdressInfo& adressInfo, bool& use);
 		//---------------------------------------------------------------------
 
 		//---<Tokens>----------------------------------------------------------

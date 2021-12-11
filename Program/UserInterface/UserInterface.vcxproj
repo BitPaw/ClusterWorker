@@ -99,6 +99,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ServerState.cpp" />
+    <ClCompile Include="UserInteractLevel.cpp" />
     <ClCompile Include="UserInterface.cpp" />
     <QtRcc Include="UserInterface.qrc" />
     <QtUic Include="UserInterface.ui" />
@@ -106,6 +108,10 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="UserInterface.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ServerState.h" />
+    <ClInclude Include="UserInteractLevel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

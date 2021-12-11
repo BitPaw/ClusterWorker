@@ -2,6 +2,8 @@
 
 #include "../OSDefine.h"
 
+#define SocketBufferSize 2048u
+
 #ifdef OSUnix
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -20,42 +22,22 @@
 #define AdressInfoType ADDRINFOA
 #endif
 
+#include "../Async/Thread.h"
 #include "SocketActionResult.h"
 #include "IPVersion.h"
-#include "ISocketListener.h"
 #include "IPAdressFamily.h"
 #include "ProtocolMode.h"
 #include "SocketType.h"
-#include "../Async/Thread.h"
-
-#define SocketBufferSize 2048u
+#include "IPAdressInfo.h"
+#include "ISocketListener.h"
 
 namespace BF
 {
 	class IOSocket
-	{
-		private:
-		int GetAdressFamily(IPVersion ipVersion);
-		
-		SocketActionResult SetupAdress
-		(
-			char* ip, // null for any ipAdress
-			unsigned short port, // -1 for no port
-			IPAdressFamily ipMode,			
-			SocketType socketType,
-			ProtocolMode protocolMode
-		);
-
-#if defined(OSWindows)
-		SocketActionResult WindowsSocketAgentStartup();
-		SocketActionResult WindowsSocketAgentShutdown();
-#endif
-
+	{	
 		public:
 		//---<Data>-------------------
-		unsigned int ID;
-		unsigned short Port;
-		AdressInfoType AdressInfo;		
+		IPAdressInfo AdressInfo;
 		//----------------------------
 
 		//---<Internal IO>------------
@@ -70,26 +52,29 @@ namespace BF
 
 		IOSocket();
 
-		char IsCurrentlyUsed();
-
-		bool GetIP(char* buffer, size_t bufferSize);
-
-		bool GetIPAndPort(char* ip, unsigned short& port);
-
+		bool IsCurrentlyUsed();
 		void Close();
-		void AwaitConnection(IOSocket& clientSocket);
 		
-		SocketActionResult Open
+		static SocketActionResult Create(IPAdressFamily adressFamily, SocketType socketType, ProtocolMode protocolMode, unsigned int& socketID);
+
+		static SocketActionResult SetupAdress
 		(
-			unsigned short port, 
-			IPAdressFamily ipAdressFamily = IPAdressFamily::Unspecified,
-			SocketType socketType = SocketType::Stream,
-			ProtocolMode protocolMode = ProtocolMode::Any
-		);		
-		
-		SocketActionResult Connect(IOSocket& serverSocket, const char* ipAdress, unsigned short port);
+			char* ip, // null for any ipAdress
+			unsigned short port, // -1 for no port
+			IPAdressFamily ipMode,
+			SocketType socketType,
+			ProtocolMode protocolMode,
+			size_t& adressInfoListSize,
+			IPAdressInfo** adressInfoList
+		);
+
 		SocketActionResult Receive();
 		SocketActionResult Send(const char* message, size_t messageLength);
 		SocketActionResult SendFile(const char* filePath, size_t sendBufferSize = 2048);		
+
+#if defined(OSWindows)
+		static SocketActionResult WindowsSocketAgentStartup();
+		static SocketActionResult WindowsSocketAgentShutdown();
+#endif
 	};
 }

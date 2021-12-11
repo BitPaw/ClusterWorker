@@ -1343,6 +1343,9 @@ QProgressBar::chunk
      <bool>false</bool>
     </property>
     <widget class="QTextBrowser" name="TextConsole">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -1357,6 +1360,9 @@ QProgressBar::chunk
        <weight>75</weight>
        <bold>true</bold>
       </font>
+     </property>
+     <property name="mouseTracking">
+      <bool>false</bool>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color:#555555;
