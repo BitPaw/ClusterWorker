@@ -260,7 +260,11 @@ void UserInterface::OnClientAcceptFailure()
 
 void UserInterface::OnProgramExecuted(bool succesful, size_t returnResult, BF::ErrorCode errorCode)
 {
-    printf("cccf");
+    char charBuffer[2048];
+
+    sprintf(charBuffer, "[Server] Program executed succesfully <R:%zi E:%i>.", returnResult, errorCode);
+
+    WriteToConsole(charBuffer);
 }
 
 void UserInterface::OnConnectionLinked(const BF::IPAdressInfo& adressInfo)
