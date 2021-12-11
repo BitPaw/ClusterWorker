@@ -80,19 +80,19 @@ void VS::VSClient::StartConnectingLoop(const char* ipString, const char* portStr
     StartConnectingLoop();
 }
 
-void VS::VSClient::OnConnectionLinked(int socketID)
+void VS::VSClient::OnConnectionLinked(const BF::IPAdressInfo& adressInfo)
 {
-    printf("[Server][i][%i] Connection linked.\n", socketID);
+    printf("[Server][i][%i] Connection linked.\n", adressInfo.SocketID);
 }
 
-void VS::VSClient::OnConnectionListening(int socketID)
+void VS::VSClient::OnConnectionListening(const BF::IPAdressInfo& adressInfo)
 {
-    printf("[Server][i][%i] Connection listening.\n", socketID);
+    printf("[Server][i][%i] Connection listening.\n", adressInfo.SocketID);
 }
 
-void VS::VSClient::OnConnectionEstablished(int socketID)
+void VS::VSClient::OnConnectionEstablished(const BF::IPAdressInfo& adressInfo)
 {
-    printf("[Client][i][%i] Connection established.\n", socketID);
+    printf("[Client][i][%i] Connection established.\n", adressInfo.SocketID);
 
     StateChange(VSClientState::Communicating);
 
@@ -115,11 +115,26 @@ void VS::VSClient::OnConnectionEstablished(int socketID)
     SentMessageToken(token);
 }
 
-void VS::VSClient::OnConnectionTerminated(int socketID)
+void VS::VSClient::OnConnectionTerminated(const BF::IPAdressInfo& adressInfo)
 {
-    printf("[Server][i][%i] Connection terminated.\n", socketID);
+    printf("[Server][i][%i] Connection terminated.\n", adressInfo.SocketID);
 
     StateChange(VSClientState::IDLE);
+}
+
+void VS::VSClient::OnConnectedToServer(BF::IPAdressInfo& adressInfo)
+{
+    printf("[Client][i][%i] Sucessfully connected to <%s>:<%i>.\n", adressInfo.SocketID, adressInfo.IP, adressInfo.Port);
+}
+
+void VS::VSClient::OnSocketCreating(const BF::IPAdressInfo& adressInfo, bool& use)
+{
+    // Do nothing
+}
+
+void VS::VSClient::OnSocketCreated(const BF::IPAdressInfo& adressInfo, bool& use)
+{
+    // Do nothing
 }
 
 void VS::VSClient::OnMessageSend(BF::IOSocketMessage socketMessage)
@@ -283,4 +298,3 @@ void VS::VSClient::OnProgramExecuted(bool succesful, size_t returnResult, BF::Er
         errorCode
     );
 }
-

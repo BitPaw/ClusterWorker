@@ -6,28 +6,40 @@
 #include "SocketActionResult.h"
 
 #include "../Async/Thread.h"
+#include "../Async/AsyncLock.h"
 
 namespace BF
 {
-    class Server : public IOSocket
+    class Server
     {
         private:
         Client* GetNextClient();
-        Thread _clientListeningThread;     
+        AsyncLock _clientListLock;
 
         public:
         IServerListener* EventCallBackServer;
+        ISocketListener* EventCallBackSocket; // Gets attached to all clients
+
+        //---<InputSterams>
         Client* ClientList;
-        unsigned int NumberOfConnectedClients;
-        unsigned int NumberOfMaximalClients;
+        size_t NumberOfConnectedClients;
+        size_t NumberOfMaximalClients;
+        //-----------------------------------
+
+        //---<Ouput>
+        size_t SocketListSize;
+        IOSocket* SocketList;
+        //-----------------------------------
 
         Server();
+        ~Server();
 
         SocketActionResult Start(unsigned short port);
         void Stop();
         void KickClient(int socketID);
-        Client* WaitForClient();
         Client* GetClientViaID(int socketID);
+
+        void RegisterClient(IOSocket* client);
 
         SocketActionResult SendMessageToClient(int clientID, char* message, size_t messageLength);
         SocketActionResult SendFileToClient(int clientID, const char* filePath);
