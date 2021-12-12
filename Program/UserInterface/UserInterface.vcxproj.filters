@@ -37,10 +37,19 @@
     <ClCompile Include="UserInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ServerState.cpp">
+    <ClCompile Include="UserInteractLevel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UserInteractLevel.cpp">
+    <ClCompile Include="ServerInternal\ClientState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerInternal\ClientInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerInternal\ServerState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeployWorkInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,10 +59,19 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ServerState.h">
+    <ClInclude Include="UserInteractLevel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UserInteractLevel.h">
+    <ClInclude Include="ServerInternal\ClientState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerInternal\ClientInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerInternal\ServerState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeployWorkInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

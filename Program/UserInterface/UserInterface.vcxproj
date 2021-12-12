@@ -99,7 +99,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ServerState.cpp" />
+    <ClCompile Include="DeployWorkInfo.cpp" />
+    <ClCompile Include="ServerInternal\ClientInfo.cpp" />
+    <ClCompile Include="ServerInternal\ClientState.cpp" />
+    <ClCompile Include="ServerInternal\ServerState.cpp" />
     <ClCompile Include="UserInteractLevel.cpp" />
     <ClCompile Include="UserInterface.cpp" />
     <QtRcc Include="UserInterface.qrc" />
@@ -110,7 +113,10 @@
     <QtMoc Include="UserInterface.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ServerState.h" />
+    <ClInclude Include="DeployWorkInfo.h" />
+    <ClInclude Include="ServerInternal\ClientInfo.h" />
+    <ClInclude Include="ServerInternal\ClientState.h" />
+    <ClInclude Include="ServerInternal\ServerState.h" />
     <ClInclude Include="UserInteractLevel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

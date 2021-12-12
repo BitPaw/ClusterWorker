@@ -1,38 +1,34 @@
 #include "VSMessageType.h"
 
 #define MessageInvalidID '?'
-#define MessageNameID 'N'
-#define MessageAnswerID 'A'
-#define MessageQuestionID 'Q'
-#define MessageExecuteID 'E'
-#define MessageUploadID 'U'
-#define MessagePerformanceHardwareID 'P'
-#define MessageFinishedID 'F'
+#define MessageTryingToConnectID 'T'
+#define MessageIDLEID 'I'
+#define MessageReceiveExecuteableID 'E'
+#define MessageReceiveWorkID 'W'
+#define MessageSendResultID 'R'
+#define MessageSendNameID 'N'	
 
 VS::VSMessageType VS::ConvertMessageType(unsigned char messageType)
 {
 	switch (messageType)
 	{
-		case MessageFinishedID:
-			return VS::VSMessageType::Finished;
+		case MessageTryingToConnectID:
+			return VS::VSMessageType::TryingToConnect;
 
-		case MessageNameID:
-			return VS::VSMessageType::Name;
+		case MessageIDLEID:
+			return VS::VSMessageType::IDLE;
 
-		case MessageAnswerID: 
-			return VS::VSMessageType::Answer;
+		case MessageReceiveExecuteableID:
+			return VS::VSMessageType::ReceiveExecuteable;
 
-		case MessageExecuteID:
-			return VS::VSMessageType::Execute;
+		case MessageReceiveWorkID:
+			return VS::VSMessageType::ReceiveWork;
 
-		case MessageUploadID:
-			return VS::VSMessageType::Upload;
+		case MessageSendResultID:
+			return VS::VSMessageType::SendResult;
 
-		case MessageQuestionID: 
-			return VS::VSMessageType::Question;
-
-		case MessagePerformanceHardwareID:
-			return VS::VSMessageType::PerformanceHardware;
+		case MessageSendNameID:
+			return VS::VSMessageType::SendName;
 
 		default: 
 			return VS::VSMessageType::Invalid;
@@ -47,25 +43,57 @@ unsigned char VS::ConvertMessageType(VSMessageType messageType)
 		case VS::VSMessageType::Invalid:
 			return MessageInvalidID;
 
-		case VS::VSMessageType::Finished:
-			return MessageFinishedID;
+		case VS::VSMessageType::TryingToConnect:
+			return MessageTryingToConnectID;
 
-		case VS::VSMessageType::Name:
-			return MessageNameID;
+		case VS::VSMessageType::IDLE:
+			return MessageIDLEID;
 
-		case VS::VSMessageType::Answer:
-			return MessageAnswerID;
+		case VS::VSMessageType::ReceiveExecuteable:
+			return MessageReceiveExecuteableID;
 
-		case VS::VSMessageType::Question:
-			return MessageQuestionID;
+		case VS::VSMessageType::ReceiveWork:
+			return MessageReceiveWorkID;
 
-		case VS::VSMessageType::Execute:
-			return MessageExecuteID;
+		case VS::VSMessageType::SendResult:
+			return MessageSendResultID;
 
-		case VS::VSMessageType::Upload:
-			return MessageUploadID;
-
-		case VS::VSMessageType::PerformanceHardware:
-			return MessagePerformanceHardwareID;
+		case VS::VSMessageType::SendName:
+			return MessageSendNameID;
 	}
+}
+
+const char* VS::MessageTypeToString(VSMessageType messageType)
+{
+	switch (messageType)
+	{
+		case VS::VSMessageType::Invalid:
+			return "Invalid";
+
+		case VS::VSMessageType::TryingToConnect:
+			return "TryingToConnect";
+
+		case VS::VSMessageType::IDLE:
+			return "IDLE";
+
+		case VS::VSMessageType::ReceiveExecuteable:
+			return "ReceiveExecuteable";
+
+		case VS::VSMessageType::ReceiveWork:
+			return "ReceiveWork";
+
+		case VS::VSMessageType::SendResult:
+			return "SendResult";
+
+		case VS::VSMessageType::SendName:
+			return "SendName";
+
+		case VS::VSMessageType::Working:
+			return "Working";
+
+		case VS::VSMessageType::ShuttingDown:
+			return "ShuttingDown";
+	}
+
+	return "Error";
 }

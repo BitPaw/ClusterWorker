@@ -298,7 +298,7 @@ BackGround-Color: #555555;</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>50</y>
+       <y>80</y>
        <width>61</width>
        <height>31</height>
       </rect>
@@ -402,7 +402,7 @@ BackGround-Color: #555555;</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>80</y>
+       <y>50</y>
        <width>61</width>
        <height>31</height>
       </rect>
@@ -633,7 +633,7 @@ BackGround-Color: #555555;</string>
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QLineEdit" name="TextBoxWorkFilePath">
+    <widget class="QLineEdit" name="TextBoxServerWorkFilePath">
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -654,7 +654,7 @@ BackGround-Color: #555555;</string>
 color: #FFFFFF;</string>
      </property>
     </widget>
-    <widget class="QProgressBar" name="ProgressDeployApplication">
+    <widget class="QProgressBar" name="ProgressBarDeployApplication">
      <property name="geometry">
       <rect>
        <x>20</x>

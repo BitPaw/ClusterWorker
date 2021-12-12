@@ -6,11 +6,13 @@
 #include <Network/IServerListener.h>
 #include <File/ProgramExecuteResultListener.hpp>
 #include <ErrorCode.h>
+#include <Async/AsyncLock.h>
 
 #include "ui_UserInterface.h"
-#include "ServerState.h"
-#include "UserInteractLevel.h"
 
+#include "UserInteractLevel.h"
+#include "ServerInternal/ServerState.h"
+#include "ServerInternal/ClientInfo.h"
 
 class UserInterface :   public QMainWindow, 
                         public BF::ISocketListener, 
@@ -36,9 +38,19 @@ public slots:
 
 private:
     Ui::UserInterfaceClass ui;
+    BF::AsyncLock _textConsoleAsyncLock;
 
+    //---<Server internal>----
     BF::Server _server;
     ServerState _stateCurrent;
+
+    BF::Thread _workDeployer;
+    static ThreadFunctionReturnType DeployWorkTasksAsync(void* data);
+
+    size_t _clientInfoListSizeCurrent;
+    size_t _clientInfoListSizeMaximal;
+    ClientInfo* _clientInfoList;
+    //-----------------------
 
     void OpenFileAndSelect(QLineEdit& lineEdit);
     void ButtonEnable(QPushButton& button, UserInteractLevel userInteractLevel);
@@ -59,6 +71,11 @@ private:
 
     void TextBoxToCharArray(QLineEdit& textbox, char* buffer);
 
+
+    ClientInfo* GetNextFreeClient();
+    ClientInfo* GetClientViaID(int socketID);
+    
+
     //---<Geerbt über ISocketListener>-----------------------------------------
     void OnConnectionLinked(const BF::IPAdressInfo& adressInfo);
     void OnConnectionListening(const BF::IPAdressInfo& adressInfo);
@@ -71,6 +88,6 @@ private:
     void OnSocketCreating(const BF::IPAdressInfo& adressInfo, bool& use);
     void OnSocketCreated(const BF::IPAdressInfo& adressInfo, bool& use);
     void OnClientAcceptFailure();
-    void OnProgramExecuted(bool succesful, size_t returnResult, BF::ErrorCode errorCode) override;
+    void OnProgramExecuted(bool succesful, intptr_t returnResult, BF::ErrorCode errorCode) override;
     //-------------------------------------------------------------------------
 };

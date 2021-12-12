@@ -4,21 +4,25 @@ namespace VS
 {
 	enum class VSMessageType
 	{
-		Invalid,
+		Invalid, // Should not be
 
-		Name,
+		TryingToConnect,
+		
+		IDLE, // Connecting and Waiting for action
 
-		Execute,
-		Upload,
+		ReceiveExecuteable,
+		ReceiveWork,
 
-		Answer,
-		Question,
+		SendResult,
+		SendName,
 
-		Finished, // Tag to mark transaction complete
+		Working,
 
-		PerformanceHardware
+		ShuttingDown
 	};
 
 	VSMessageType ConvertMessageType(unsigned char messageType);
 	unsigned char  ConvertMessageType(VSMessageType messageType);
+
+	const char* MessageTypeToString(VSMessageType messageType);
 }
