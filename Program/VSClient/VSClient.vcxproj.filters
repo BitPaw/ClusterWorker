@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VSClientState.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -32,9 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VSClientState.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="VSClient.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>

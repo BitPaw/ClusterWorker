@@ -47,13 +47,13 @@ int main(int parameterListSize, char** parameterList)
     }
     //-------------------------------------------------------------------------  
 
-    _client.StateChange(VSClientState::IDLE);
+    _client.StateChange(VSMessageType::TryingToConnect);
 
     do
     {
         switch (_client.State)
         {
-            case VSClientState::IDLE:
+            case VSMessageType::TryingToConnect:
             {
                 // Try Connecting
                 _client.StartConnectingLoop();
@@ -71,7 +71,7 @@ int main(int parameterListSize, char** parameterList)
         // Send Data
 
     }
-    while (_client.State != VS::VSClientState::Stop);
+    while (_client.IsRunning());
        
     return EXIT_SUCCESS;
 }

@@ -2,6 +2,16 @@
 #include <wchar.h>
 #include <File/OpenFileDialog.h>
 #include <File/Program.h>
+#include <File/File.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include "DeployWorkInfo.h"
+
+#define ColorRed "FF4444"
+#define ColorGreen "44FF44"
+#define ColorYellow "FFFF44"
+#define DefaultPort "25666"
 
 UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
 {
@@ -10,11 +20,19 @@ UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
     _server.EventCallBackSocket = this;
     _server.EventCallBackServer = this;
 
-    ui.TextBoxPort->setText("25666");
+
+    _clientInfoListSizeCurrent = 0;
+    _clientInfoListSizeMaximal = 10;
+    _clientInfoList = new ClientInfo[_clientInfoListSizeMaximal];
+
+
+    _textConsoleAsyncLock.Create();
+
+    ui.TextBoxPort->setText(DefaultPort);
     //ui.TableClientList->setColumnWidth(0, 10);
 
     ui.ProgressBarWork->setValue(0);
-    ui.ProgressDeployApplication->setValue(0);
+    ui.ProgressBarDeployApplication->setValue(0);
 
     ui.ComboBoxIPMode->addItem("Both");
     ui.ComboBoxIPMode->addItem("IPv4");
@@ -125,6 +143,8 @@ void UserInterface::OnButtonDeployApplicationClicked()
         }
     }
 
+    ui.ProgressBarDeployApplication->setValue(10);
+
     QString& filePathQ = ui.TextBoxClientFile->text();
     bool hasPath = !filePathQ.isEmpty();
 
@@ -153,17 +173,24 @@ void UserInterface::OnButtonDeployApplicationClicked()
                 _splitpath(filePath,drive, dir, fileName, exten);
             }        
 
-            size_t bytesToSend = sprintf(message, "U####%s%s", fileName, exten);
+            size_t bytesToSend = sprintf(message, "E####%s%s", fileName, exten);
 
             message[1] = (sizeOfWchar & 0xFF000000) >> 24;
             message[2] = (sizeOfWchar & 0x00FF0000) >> 16;
             message[3] = (sizeOfWchar & 0x0000FF00) >> 8;
             message[4] = sizeOfWchar & 0x000000FF;
 
+            ui.ProgressBarDeployApplication->setValue(20);
+
             StateChange(ServerState::DataDeploying);
 
-            _server.BroadcastMessageToClients(message, bytesToSend + 1 * sizeof(char));      
+            _server.BroadcastMessageToClients(message, bytesToSend + 1 * sizeof(char));   
+
+            ui.ProgressBarDeployApplication->setValue(50);
+
             _server.BroadcastFileToClients(filePath);
+
+            ui.ProgressBarDeployApplication->setValue(100);
 
             StateChange(ServerState::DataDeployed);
         }      
@@ -200,13 +227,19 @@ void UserInterface::OnButtonStartClicked()
 
     StateChange(ServerState::Starting);
 
-    char serverSideExecutablePath[255];
-    char serverSideInputData[255];
+    ui.ProgressBarWork->setValue(10);
 
-    TextBoxToCharArray(*ui.TextBoxServerFile, serverSideExecutablePath);
-    TextBoxToCharArray(*ui.TextBoxWorkFilePath, serverSideInputData);
+    char serverExecutableFilePath[260];
+    char serverExecutableInputFilePath[260];
 
-    BF::Program::Execute(serverSideExecutablePath, serverSideInputData, nullptr);
+    TextBoxToCharArray(*ui.TextBoxServerWorkFilePath, serverExecutableInputFilePath);
+    TextBoxToCharArray(*ui.TextBoxServerFile, serverExecutableFilePath);
+
+    ui.ProgressBarWork->setValue(25);
+
+    //BF::Program::Execute(serverExecutableFilePath, serverExecutableInputFilePath, this);
+
+    ui.ProgressBarWork->setValue(50);
 
     StateChange(ServerState::Started);
 }
@@ -227,7 +260,7 @@ void UserInterface::OnButtonClientFileSelectClicked()
 
 void UserInterface::OnButtonInputFileSelectClicked()
 {
-    OpenFileAndSelect(*ui.TextBoxWorkFilePath);    
+    OpenFileAndSelect(*ui.TextBoxServerWorkFilePath);    
 
     CheckDeployButton();
 }
@@ -258,13 +291,98 @@ void UserInterface::OnClientAcceptFailure()
 
 }
 
-void UserInterface::OnProgramExecuted(bool succesful, size_t returnResult, BF::ErrorCode errorCode)
+void UserInterface::OnProgramExecuted(bool succesful, intptr_t returnResult, BF::ErrorCode errorCode)
 {
     char charBuffer[2048];
 
-    sprintf(charBuffer, "[Server] Program executed succesfully <R:%zi E:%i>.", returnResult, errorCode);
+    sprintf(charBuffer, "[Server] Program executed succesfully <R:%zi E:%i>.\n", returnResult, errorCode);
 
     WriteToConsole(charBuffer);
+
+    ui.ProgressBarWork->setValue(50);
+
+    if (!succesful)
+    {
+        wchar_t msgBoxText[1024];
+
+        swprintf
+        (
+            msgBoxText, 
+            L"The server-side application was executed sucessfuly but returned an error\n\n"
+            "Details: ReturnCode - %zi\n"
+            "         ErrorCode  - %zi\n",
+            returnResult,
+            errorCode
+         );
+
+        int msgboxID = MessageBox
+        (
+            NULL,
+            msgBoxText,
+            (LPCWSTR)L"Execution failed",
+            MB_ICONERROR | MB_OK | MB_TOPMOST
+        );
+
+        ui.ProgressBarWork->setValue(0);
+
+        return;
+    }
+
+    DeployWorkInfo* deployWorkInfo = new DeployWorkInfo();
+    deployWorkInfo->UI = this;
+    deployWorkInfo->ServerSystem = &_server;
+    strncpy_s(deployWorkInfo->folderPath, "/*", 260);
+
+    _workDeployer.Run(UserInterface::DeployWorkTasksAsync, deployWorkInfo);
+}
+
+ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
+{
+    DeployWorkInfo* deployWorkInfo = (DeployWorkInfo*)data;
+    char* folderPath = deployWorkInfo->folderPath;
+    BF::Server* server = deployWorkInfo->ServerSystem;
+    UserInterface* ui = deployWorkInfo->UI;
+    wchar_t** fileList = nullptr;
+    size_t fileListSize = 0;
+
+    BF::File::FilesInFolder(folderPath, &fileList, fileListSize);
+
+    for (size_t currentFileNumber = 0; currentFileNumber < fileListSize; )
+    {
+        ClientInfo* clientInfo = ui->GetNextFreeClient();
+        wchar_t* filePath = fileList[currentFileNumber];
+
+        if (!clientInfo)
+        {
+            Sleep(1000); // If there is no client, wait 1s and try again.
+            continue;
+        }  
+
+        char filePathA[512];
+
+        wcstombs(filePathA, filePath, 512);
+
+        char message[260];
+
+        sprintf(message, "W\0\0\0\0\0");
+
+        BF::SocketActionResult sendMResult = server->SendMessageToClient(clientInfo->SocketID, filePathA, 5);
+
+        if (sendMResult == BF::SocketActionResult::Successful)
+        {
+            BF::SocketActionResult sendFResult = server->SendFileToClient(clientInfo->SocketID, filePathA);
+
+            if (sendFResult == BF::SocketActionResult::Successful)
+            {
+                clientInfo->State = ClientState::Working;
+                ++currentFileNumber;
+            }
+        }
+    }
+
+    delete deployWorkInfo;
+
+    return 0;
 }
 
 void UserInterface::OnConnectionLinked(const BF::IPAdressInfo& adressInfo)
@@ -333,8 +451,6 @@ void UserInterface::OnClientConnected(BF::Client& client)
     tableWidget.setItem(rowCount, 0, new QTableWidgetItem(textID));
     tableWidget.setItem(rowCount, 1, new QTableWidgetItem(clientName));
     tableWidget.setItem(rowCount, 2, new QTableWidgetItem("Conneced"));
-
-    // tableWidget.Width
 }
 
 void UserInterface::OpenFileAndSelect(QLineEdit& lineEdit)
@@ -347,10 +463,6 @@ void UserInterface::OpenFileAndSelect(QLineEdit& lineEdit)
         lineEdit.setText(filePath);
     }
 }
-
-#define ColorRed "FF4444";
-#define ColorGreen "44FF44";
-#define ColorYellow "FFFF44";
 
 void UserInterface::ButtonEnable(QPushButton& button, UserInteractLevel userInteractLevel)
 {
@@ -387,7 +499,7 @@ UserInteractLevel UserInterface::CanUserPressDeployButton()
 {
     bool a = !ui.TextBoxResultFile->text().isEmpty();
     bool b = !ui.TextBoxServerFile->text().isEmpty();
-    bool c = !ui.TextBoxWorkFilePath->text().isEmpty();
+    bool c = !ui.TextBoxServerWorkFilePath->text().isEmpty();
     bool d = !ui.TextBoxClientFile->text().isEmpty();
 
     bool enable = a && b && c && d;
@@ -476,8 +588,10 @@ void UserInterface::WriteToConsole(char* text)
 {
     QTextBrowser* console = ui.TextConsole;
 
+    _textConsoleAsyncLock.Lock();
     console->insertPlainText(text);
     console->moveCursor(QTextCursor::End);
+    _textConsoleAsyncLock.Release();
 }
 
 void UserInterface::StateChange(ServerState state)
@@ -492,9 +606,40 @@ void UserInterface::StateChange(ServerState state)
 
 void UserInterface::TextBoxToCharArray(QLineEdit& textbox, char* buffer)
 {
-    std::string stdString = ui.TextBoxWorkFilePath->text().toStdString();
+    std::string stdString = textbox.text().toStdString();
 
     const char* carray = stdString.c_str();
 
-    strcpy(buffer, carray);
+    memset(buffer, 0, 260);
+    strncpy_s(buffer, 260, carray, stdString.size());
+}
+
+ClientInfo* UserInterface::GetNextFreeClient()
+{
+    for (size_t i = 0; i < _clientInfoListSizeCurrent; i++)
+    {
+        ClientInfo& clientInfo = _clientInfoList[i];
+
+        if (clientInfo.State == ClientState::IDLE)
+        {
+            return &_clientInfoList[i];
+        }
+    }
+
+    return nullptr;
+}
+
+ClientInfo* UserInterface::GetClientViaID(int socketID)
+{
+    for (size_t i = 0; i < _clientInfoListSizeCurrent; i++)
+    {
+        ClientInfo& clientInfo = _clientInfoList[i];
+
+        if (clientInfo.SocketID == socketID)
+        {
+            return &_clientInfoList[i];
+        }
+    }
+
+    return nullptr;
 }

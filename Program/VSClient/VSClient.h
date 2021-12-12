@@ -2,7 +2,6 @@
 
 #define VSClientIPLength 32
 
-#include "VSClientState.h"
 #include "VSMessageToken.h"
 
 #include <ErrorCode.h>
@@ -23,11 +22,13 @@ namespace VS
 		BF::Client _client;
 
 		public:
-		VSClientState State;
+		VSMessageType State;
 		char IP[VSClientIPLength];
 		unsigned short Port;
 
 		char TargetExecutableFilePath[260];
+		char TargetExecutableInputFilePath[260];
+
 		FILE* _fileBuffer = nullptr;
 		size_t FileBufferSize = 0;
 
@@ -37,12 +38,14 @@ namespace VS
 		void PortSet(const char* port);
 		void PortSet(unsigned short port);
 
-		bool IsRunning() { return State != VS::VSClientState::Stop; }
-		void StateChange(VSClientState clientState);
+		bool IsRunning() { return State != VS::VSMessageType::ShuttingDown && State != VS::VSMessageType::Invalid; }
+		void StateChange(VSMessageType state);
 
 		void StartConnectingLoop();
 		void StartConnectingLoop(const char* ipString, const char* portString);
 
+
+		bool RecieveFileChunk(char* input, size_t inputSize, FILE* file, size_t& currentSize);
 
 		//---<Events>----------------------------------------------------------
 		void OnConnectionLinked(const BF::IPAdressInfo& adressInfo);
@@ -67,7 +70,7 @@ namespace VS
 	
 		void ExecutableFilePathSet(char* targetExecutableFilePath);
 
-		void OnProgramExecuted(bool succesful, size_t returnResult, BF::ErrorCode errorCode);	
+		void OnProgramExecuted(bool succesful, intptr_t returnResult, BF::ErrorCode errorCode);	
 		//---------------------------------------------------------------------
 	};
 }

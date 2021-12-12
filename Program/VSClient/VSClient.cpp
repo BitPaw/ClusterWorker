@@ -4,13 +4,18 @@
 #include <Container/AsciiString.h>
 #include <WinBase.h>
 
+#include <Network/SocketActionResult.h>
+#include <Container/AsciiString.h>
+#include <wchar.h>
+
 using namespace BF;
 
 VS::VSClient::VSClient()
 {
-	State = VSClientState::Invalid;
+	State = VSMessageType::Invalid;
 
 	memset(IP, '#', VSClientIPLength);
+    strcpy(TargetExecutableInputFilePath, "ClientInput.input");
 
 	Port = 0;
 
@@ -31,11 +36,6 @@ void VS::VSClient::PortSet(unsigned short port)
 {
 	Port = port;
 }
-
-#include <Network/SocketActionResult.h>
-#include <Container/AsciiString.h>
-#include <wchar.h>
-
 
 void VS::VSClient::StartConnectingLoop()
 {
@@ -80,21 +80,30 @@ void VS::VSClient::StartConnectingLoop(const char* ipString, const char* portStr
     StartConnectingLoop();
 }
 
+bool VS::VSClient::RecieveFileChunk(char* input, size_t inputSize, FILE* file, size_t& currentSize)
+{
+    fwrite(input, sizeof(char), inputSize, file);
+
+    currentSize += inputSize;
+
+    return inputSize < SocketBufferSize; // isfinished
+}
+
 void VS::VSClient::OnConnectionLinked(const BF::IPAdressInfo& adressInfo)
 {
-    printf("[Server][i][%i] Connection linked.\n", adressInfo.SocketID);
+    // Does not happen
 }
 
 void VS::VSClient::OnConnectionListening(const BF::IPAdressInfo& adressInfo)
 {
-    printf("[Server][i][%i] Connection listening.\n", adressInfo.SocketID);
+    // Does not happen
 }
 
 void VS::VSClient::OnConnectionEstablished(const BF::IPAdressInfo& adressInfo)
 {
-    printf("[Client][i][%i] Connection established.\n", adressInfo.SocketID);
+    printf("[Client][i][%i] Connection established <%s:%i>.\n", adressInfo.SocketID, adressInfo.IP, adressInfo.Port);
 
-    StateChange(VSClientState::Communicating);
+    StateChange(VSMessageType::SendName);
 
     // Send pong back
     /*
@@ -110,16 +119,18 @@ void VS::VSClient::OnConnectionEstablished(const BF::IPAdressInfo& adressInfo)
 
     bool userNameLengthResult = GetUserNameA(userName, &userNameLength);
     
-    VSMessageToken token(VSMessageType::Name, userNameLength, userName);
+    VSMessageToken token(VSMessageType::SendName, userNameLength, userName);
 
     SentMessageToken(token);
+
+    StateChange(VSMessageType::IDLE);
 }
 
 void VS::VSClient::OnConnectionTerminated(const BF::IPAdressInfo& adressInfo)
 {
     printf("[Server][i][%i] Connection terminated.\n", adressInfo.SocketID);
 
-    StateChange(VSClientState::IDLE);
+    StateChange(VSMessageType::TryingToConnect);
 }
 
 void VS::VSClient::OnConnectedToServer(BF::IPAdressInfo& adressInfo)
@@ -139,17 +150,17 @@ void VS::VSClient::OnSocketCreated(const BF::IPAdressInfo& adressInfo, bool& use
 
 void VS::VSClient::OnMessageSend(BF::IOSocketMessage socketMessage)
 {
-    printf("[Client][i][%i] Send (%i Bytes).\n", socketMessage.SocketID, socketMessage.MessageSize);
+    printf("[Client][i][%i] Send (%zi Bytes).\n", socketMessage.SocketID, socketMessage.MessageSize);
 }
 
 void VS::VSClient::OnMessageReceive(BF::IOSocketMessage socketMessage)
 {
     // printf("[Server][i][%i] Message:%s (%i Bytes).\n", socketID, message, messageSize);
-    printf("[Server][i][%i] Received (%i Bytes).\n", socketMessage.SocketID, socketMessage.MessageSize);
+    printf("[Server][i][%i] Received (%zi Bytes).\n", socketMessage.SocketID, socketMessage.MessageSize);
 
     switch (State)
     {
-        case VSClientState::Communicating:
+        case VSMessageType::IDLE:
         {
             if (socketMessage.MessageSize <= 4)
             {
@@ -171,13 +182,12 @@ void VS::VSClient::OnMessageReceive(BF::IOSocketMessage socketMessage)
 
             break;
         }
-        case VSClientState::Updating:
+        case VSMessageType::ReceiveWork:
+        case VSMessageType::ReceiveExecuteable:
         {
-            fwrite(socketMessage.Message, sizeof(char), socketMessage.MessageSize, _fileBuffer);
-
-            FileBufferSize += socketMessage.MessageSize;
-
-            if (socketMessage.MessageSize < SocketBufferSize)
+            bool finished = RecieveFileChunk(socketMessage.Message, socketMessage.MessageSize, _fileBuffer, FileBufferSize);
+                   
+            if (finished)
             {
                 size_t writtenBytes = FileBufferSize;
 
@@ -189,9 +199,16 @@ void VS::VSClient::OnMessageReceive(BF::IOSocketMessage socketMessage)
                     FileBufferSize = 0;
                 }
 
-                printf("[System] File sucessfuly send! %i Bytes\n", writtenBytes);
+                printf("[System] File sucessfuly send! %zi Bytes\n", writtenBytes);
 
-                OnMessageTokenRecived(VSMessageToken(VSMessageType::Finished, 0, nullptr), socketMessage.SocketID);
+                if (State == VSMessageType::ReceiveWork)
+                {
+                    ProgramExecute();
+                }
+                else
+                {
+                    StateChange(VSMessageType::IDLE);
+                }           
             }
 
             break;
@@ -202,11 +219,14 @@ void VS::VSClient::OnMessageReceive(BF::IOSocketMessage socketMessage)
     }
 }
 
-void VS::VSClient::StateChange(VSClientState clientState)
+void VS::VSClient::StateChange(VSMessageType clientState)
 {
+    const char* stateOld = MessageTypeToString(State);
+    const char* stateNew = MessageTypeToString(clientState);
+
     State = clientState;
 
-    printf("[Client][i] State changed!\n");
+    printf("\n[Client][i](State changed)-----< %-15s >-->>--< %-15s >-----\n\n", stateOld, stateNew);
 }
 
 void VS::VSClient::SentMessageToken(VSMessageToken messageToken)
@@ -235,42 +255,33 @@ void VS::VSClient::OnMessageTokenRecived(VSMessageToken messageToken, int socket
 {
     switch (messageToken.Type)
     {
-        default:
         case VS::VSMessageType::Invalid:
-        {
             break;
-        }
-        case VS::VSMessageType::Name:
-        {
+        case VS::VSMessageType::TryingToConnect:
             break;
-        }
-        case VS::VSMessageType::Execute:
-        {            
-            ProgramExecute();
+        case VS::VSMessageType::IDLE:
             break;
-        }
-        case VS::VSMessageType::Upload:
+        case VS::VSMessageType::ReceiveExecuteable:
         {
-            StateChange(VSClientState::Updating);
+            StateChange(VSMessageType::ReceiveExecuteable);
             ExecutableFilePathSet(messageToken.Data);
 
             _fileBuffer = fopen(TargetExecutableFilePath, "wb");
             break;
-        }
-        case VS::VSMessageType::Finished:
+        } 
+        case VS::VSMessageType::ReceiveWork:
         {
-     
-
+            StateChange(VSMessageType::ReceiveWork);
+   
+            _fileBuffer = fopen(TargetExecutableInputFilePath, "wb");
             break;
         }
-        case VS::VSMessageType::Answer:
-        {
+        case VS::VSMessageType::SendResult:
             break;
-        }
-        case VS::VSMessageType::Question:
-        {
+        case VS::VSMessageType::SendName:
             break;
-        }
+        default:
+            break;
     }
 }
 
@@ -283,16 +294,18 @@ void VS::VSClient::ExecutableFilePathSet(char* targetExecutableFilePath)
 
 void VS::VSClient::ProgramExecute()
 {
+    StateChange(VSMessageType::Working);
+
     printf("[Client][>] Executing <%s> ...\n", TargetExecutableFilePath);
 
-    Program::Execute(TargetExecutableFilePath, nullptr, this);
+    Program::Execute(TargetExecutableFilePath, TargetExecutableInputFilePath, this);
 }
 
-void VS::VSClient::OnProgramExecuted(bool succesful, size_t returnResult, BF::ErrorCode errorCode)
+void VS::VSClient::OnProgramExecuted(bool succesful, intptr_t returnResult, BF::ErrorCode errorCode)
 {
     printf
     (
-        "[System] EXECUTION FINISHED! Succesful:%s (R:%i, E:%i)\n", 
+        "[System] EXECUTION FINISHED! Succesful:%s (R:%zi, E:%i)\n", 
         succesful ? "Yes" : "No",
         returnResult,
         errorCode

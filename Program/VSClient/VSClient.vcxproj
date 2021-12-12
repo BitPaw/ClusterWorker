@@ -164,14 +164,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="VSClient.cpp" />
-    <ClCompile Include="VSClientState.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="VSMessageToken.cpp" />
     <ClCompile Include="VSMessageType.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VSClient.h" />
-    <ClInclude Include="VSClientState.h" />
     <ClInclude Include="VSMessageToken.h" />
     <ClInclude Include="VSMessageType.h" />
   </ItemGroup>
