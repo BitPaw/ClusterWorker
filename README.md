@@ -11,15 +11,21 @@
 
 ![Image](Design/Solution_v3.png)
 
-## User - Protocol
-### Both
+## CurrentUI (Test/Preview Version)
+![Image](Design/CurrentUI.png)
+
+### User - Protocol
+#### Both
 - Install Software and Start Application
 - Wait for a connection
-### Server
+#### Server
 - Select deicated Client & Server side solutions
 - Send client siede executable to all Clients.
 - Initiate Server side and start creating problems to solve.
 - The Sever will delegate everything, wait until finished. 
 
-## CurrentUI (Test/Preview Version)
-![Image](Design/CurrentUI.png)
+### Internal startup
+| Name | Paramater 1 | Paramater 2 | Purpose |
+|:-----| :---------------:|:-----------:|:---|
+| ServerSide.exe | InputFilePath | Mode | (Mode=1) Generate chunk files<br>(Mode=2) Merge result files |
+| ClientSide.exe | ChunkFilePath |  | Solve chunkfile |
