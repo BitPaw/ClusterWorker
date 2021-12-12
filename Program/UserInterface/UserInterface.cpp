@@ -173,12 +173,7 @@ void UserInterface::OnButtonDeployApplicationClicked()
                 _splitpath(filePath,drive, dir, fileName, exten);
             }        
 
-            size_t bytesToSend = sprintf(message, "E####%s%s", fileName, exten);
-
-            message[1] = (sizeOfWchar & 0xFF000000) >> 24;
-            message[2] = (sizeOfWchar & 0x00FF0000) >> 16;
-            message[3] = (sizeOfWchar & 0x0000FF00) >> 8;
-            message[4] = sizeOfWchar & 0x000000FF;
+            size_t bytesToSend = sprintf(message, "E%s%s", fileName, exten);
 
             ui.ProgressBarDeployApplication->setValue(20);
 
@@ -231,13 +226,16 @@ void UserInterface::OnButtonStartClicked()
 
     char serverExecutableFilePath[260];
     char serverExecutableInputFilePath[260];
+    char parameterList[512];
 
     TextBoxToCharArray(*ui.TextBoxServerWorkFilePath, serverExecutableInputFilePath);
     TextBoxToCharArray(*ui.TextBoxServerFile, serverExecutableFilePath);
 
     ui.ProgressBarWork->setValue(25);
 
-    //BF::Program::Execute(serverExecutableFilePath, serverExecutableInputFilePath, this);
+    sprintf(parameterList, "%i %s", 0, serverExecutableInputFilePath);
+
+    BF::Program::Execute(serverExecutableFilePath, parameterList, this);
 
     ui.ProgressBarWork->setValue(50);
 
@@ -364,7 +362,7 @@ ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
 
         char message[260];
 
-        sprintf(message, "W\0\0\0\0\0");
+        sprintf(message, "W");
 
         BF::SocketActionResult sendMResult = server->SendMessageToClient(clientInfo->SocketID, filePathA, 5);
 

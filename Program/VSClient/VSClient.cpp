@@ -167,17 +167,14 @@ void VS::VSClient::OnMessageReceive(BF::IOSocketMessage socketMessage)
                 return;
             }
 
-            for (size_t i = 0; i < socketMessage.MessageSize - 1; )
+            VSMessageToken messageToken;
+
+            messageToken.Parse(socketMessage.Message, socketMessage.MessageSize);
+
+            if (messageToken.Type != VSMessageType::Invalid)
             {
-                VSMessageToken messageToken;
-
-                i += messageToken.Parse(socketMessage.Message);
-
-                if (messageToken.Type != VSMessageType::Invalid)
-                {
-                    OnMessageTokenRecived(messageToken, socketMessage.SocketID);
-                    //OnMessageTokenRecived(VSMessageToken(VSMessageType::Execute, 0, 0), -1);
-                }
+                OnMessageTokenRecived(messageToken, socketMessage.SocketID);
+                //OnMessageTokenRecived(VSMessageToken(VSMessageType::Execute, 0, 0), -1);
             }
 
             break;

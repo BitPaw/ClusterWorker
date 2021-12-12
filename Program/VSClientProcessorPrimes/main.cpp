@@ -4,6 +4,7 @@
 #include <File/FileStream.h>
 #include <stdlib.h>
 #include <Windows.h>
+#include <string>
 
 using namespace BF;
 

@@ -10,7 +10,7 @@ namespace VS
 	{
 		public:
 		VSMessageType Type;
-		unsigned int Length;
+		size_t Length;
 		char Data[2048];
 
 		VSMessageToken();
@@ -18,7 +18,7 @@ namespace VS
 
 		void Fill(VSMessageType type, unsigned int length, char* data);
 
-		size_t Parse(char* dataInput);
+		size_t Parse(char* dataInput, size_t messageLength);
 		size_t UnParse(char * dataOutPut);
 
 		static bool CouldBeToken(unsigned char byte);

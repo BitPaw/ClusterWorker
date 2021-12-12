@@ -21,31 +21,25 @@ void VS::VSMessageToken::Fill(VSMessageType type, unsigned int length, char* dat
 	memcpy_s(Data, TokenMaxLength, data, length);
 }
 
-size_t VS::VSMessageToken::Parse(char* dataInput)
+size_t VS::VSMessageToken::Parse(char* dataInput, size_t messageLength)
 {
-	Type = ConvertMessageType(dataInput[0]);
-	Length = 
-		(unsigned int)dataInput[1] << 24 |
-		(unsigned int)dataInput[2] << 16 |
-		(unsigned int)dataInput[3] << 8 |
-		(unsigned int)dataInput[4];
+	unsigned char type = dataInput[0];
 
-	memcpy(Data, dataInput + 5, Length);
+	Type = ConvertMessageType(type);
+	Length = messageLength;
 
-	return 5u + Length;
+	memcpy(Data, dataInput + 1, messageLength -1);
+
+	return messageLength;
 }
 
 size_t VS::VSMessageToken::UnParse(char* dataOutPut)
 {
 	dataOutPut[0] = ConvertMessageType(Type);
-	dataOutPut[1] = (Length & 0xFF000000) >> 24;
-	dataOutPut[2] = (Length & 0x00FF0000) >> 16;
-	dataOutPut[3] = (Length & 0x0000FF00) >> 8;
-	dataOutPut[4] = Length & 0x000000FF;
 
-	memcpy(dataOutPut + 5, Data, Length);
+	memcpy(dataOutPut + 1, Data, Length);
 
-	return 5u + Length;
+	return 1u + Length;
 }
 
 bool VS::VSMessageToken::CouldBeToken(unsigned char byte)

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <Windows.h>
 #include <File/FileStream.h>
+#include <string>
 
 using namespace BF;
 
