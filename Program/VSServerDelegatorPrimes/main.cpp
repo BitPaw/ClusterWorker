@@ -14,7 +14,7 @@ void FileOut(int chunkNr, std::string out)
 	path += ".chunk";
 
 	FILE* stream;
-	fopen_s(&stream, path.c_str(), "w+");
+	fopen_s(&stream, path.c_str(), "wb+");
 	if (stream) {
 		fprintf_s(stream, out.c_str());
 		fclose(stream);
@@ -98,5 +98,5 @@ int main(int numberOfParameters, char** parameterList)
 		return EXIT_SUCCESS;
 	}
 
-	return -1;
+	return -3;
 }

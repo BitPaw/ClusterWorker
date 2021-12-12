@@ -32,7 +32,7 @@ bool isPrime(int n) {
 int main(int numberOfParameters, char** parameterList)
 {
 	if (numberOfParameters != 2)
-		return -1;
+		return -3;
 	
 	char* path = parameterList[1];
 	const char* outPath = "out.result";
@@ -71,12 +71,12 @@ int main(int numberOfParameters, char** parameterList)
 	}
 
 	const float x = stopWatch.Stop();
-
+		
 	printf("Calculated finished in: %fs\n", x);
 	
 	FILE* stream;
 	
-	fopen_s(&stream, outPath, "w+");
+	fopen_s(&stream, outPath, "wb+");
 	if (stream) {
 		fprintf_s(stream, out.c_str());
 		fclose(stream);
