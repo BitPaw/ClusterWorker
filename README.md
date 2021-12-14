@@ -25,7 +25,7 @@
 - The Sever will delegate everything, wait until finished. 
 
 ### Internal startup
-| Name | Paramater 1 | Paramater 2 | Purpose |
-|:-----| :---------------:|:-----------:|:---|
-| ServerSide.exe | InputFilePath | Mode | (Mode=1) Generate chunk files<br>(Mode=2) Merge result files |
-| ClientSide.exe | ChunkFilePath |  | Solve chunkfile |
+| Name | Paramater 1 | Paramater 2 | Parameter 3 | Parameter 4 | Purpose |
+|:--| :-:|:-:|:-:|:-:|:---|
+| ServerSide.exe | Mode | InputFilePath | OutputFilePath | WorkingDirectory <br>(chunk & result files) | (Mode=1) Generate chunk files<br>(Mode=2) Try merge result files |
+| ClientSide.exe | InputFilePath<br>(???.chunk)| OutputFilePath<br>(???.result) | | | Solve chunkfile |
