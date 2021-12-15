@@ -14,4 +14,6 @@ void ClientInfo::Set(int socketID, ClientState state)
 {
 	SocketID = socketID;
 	State = state;
+
+	CurrentFile = nullptr;
 }

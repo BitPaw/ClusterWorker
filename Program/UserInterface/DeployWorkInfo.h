@@ -5,7 +5,7 @@
 class DeployWorkInfo
 {
     public:
-    char folderPath[260];
+    char FolderPath[260];
     BF::Server* ServerSystem = nullptr;
-    UserInterface* UI = nullptr;
+    ClientList* Clients = nullptr;
 };

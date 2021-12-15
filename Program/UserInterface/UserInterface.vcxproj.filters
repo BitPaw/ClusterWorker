@@ -52,6 +52,9 @@
     <ClCompile Include="DeployWorkInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ServerInternal\ClientList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="UserInterface.h">
@@ -74,5 +77,25 @@
     <ClInclude Include="DeployWorkInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ServerInternal\ClientList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="IconClientCalc.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="IconEndFile.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="IconServerCalc.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="IconStartFile.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="BackGround.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

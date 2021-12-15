@@ -27,7 +27,9 @@ namespace VS
 		unsigned short Port;
 
 		char TargetExecutableFilePath[260];
-		char TargetExecutableInputFilePath[260];
+
+		char _filePathInput[260];
+		char _filePathOutPut[260];
 
 		FILE* _fileBuffer = nullptr;
 		size_t FileBufferSize = 0;

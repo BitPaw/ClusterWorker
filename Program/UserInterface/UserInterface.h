@@ -13,6 +13,7 @@
 #include "UserInteractLevel.h"
 #include "ServerInternal/ServerState.h"
 #include "ServerInternal/ClientInfo.h"
+#include "ServerInternal/ClientList.h"
 
 class UserInterface :   public QMainWindow, 
                         public BF::ISocketListener, 
@@ -47,9 +48,7 @@ private:
     BF::Thread _workDeployer;
     static ThreadFunctionReturnType DeployWorkTasksAsync(void* data);
 
-    size_t _clientInfoListSizeCurrent;
-    size_t _clientInfoListSizeMaximal;
-    ClientInfo* _clientInfoList;
+    ClientList _clientList;
     //-----------------------
 
     void OpenFileAndSelect(QLineEdit& lineEdit);
@@ -72,8 +71,7 @@ private:
     void TextBoxToCharArray(QLineEdit& textbox, char* buffer);
 
 
-    ClientInfo* GetNextFreeClient();
-    ClientInfo* GetClientViaID(int socketID);
+    void SetFilePath(char* path, const char* filePath);
     
 
     //---<Geerbt über ISocketListener>-----------------------------------------

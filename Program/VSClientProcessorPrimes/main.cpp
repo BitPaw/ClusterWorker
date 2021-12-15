@@ -31,16 +31,16 @@ bool isPrime(int n) {
 
 int main(int numberOfParameters, char** parameterList)
 {
-	if (numberOfParameters != 2)
+	if (numberOfParameters != 3) // 0=LocalPath, 1=InputFile, 2=OuptFile
 		return -3;
 	
-	char* path = parameterList[1];
-	const char* outPath = "out.result";
-	//printf("%s\n", path);
-	FileStream fs;
-	
+	const char* filePathInput = parameterList[1];
+	const char* filePathOutput = parameterList[2];
 
-	fs.ReadFromDisk(path);//"C:/Users/Merdo/Desktop/-- VS/ClusterWorker/Program/x64/Debug/in.chunk");
+	//printf("%s\n", path);
+	FileStream fs;	
+
+	fs.ReadFromDisk(filePathInput);//"C:/Users/Merdo/Desktop/-- VS/ClusterWorker/Program/x64/Debug/in.chunk");
 
 	char s[2048];
 
@@ -76,8 +76,10 @@ int main(int numberOfParameters, char** parameterList)
 	
 	FILE* stream;
 	
-	fopen_s(&stream, outPath, "wb+");
-	if (stream) {
+	fopen_s(&stream, filePathOutput, "wb");
+
+	if (stream) 
+	{
 		fprintf_s(stream, out.c_str());
 		fclose(stream);
 	}

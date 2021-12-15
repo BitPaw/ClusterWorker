@@ -453,7 +453,7 @@ BackGround-Color: #555555;</string>
       <string notr="true"/>
      </property>
      <property name="pixmap">
-      <pixmap resource="UserInterface.qrc">:/UserInterface/IconServerCalc.png</pixmap>
+      <pixmap resource="UserInterface.qrc">:/Images/IconServerCalc.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -521,7 +521,7 @@ BackGround-Color: #555555;</string>
       <string notr="true"/>
      </property>
      <property name="pixmap">
-      <pixmap resource="UserInterface.qrc">:/UserInterface/IconClientCalc.png</pixmap>
+      <pixmap resource="UserInterface.qrc">:/Images/IconClientCalc.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -556,7 +556,7 @@ BackGround-Color: #555555;</string>
       <string notr="true"/>
      </property>
      <property name="pixmap">
-      <pixmap resource="UserInterface.qrc">:/UserInterface/IconEndFile.png</pixmap>
+      <pixmap resource="UserInterface.qrc">:/Images/IconEndFile.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -591,7 +591,7 @@ BackGround-Color: #555555;</string>
       <string notr="true"/>
      </property>
      <property name="pixmap">
-      <pixmap resource="UserInterface.qrc">:/UserInterface/IconStartFile.png</pixmap>
+      <pixmap resource="UserInterface.qrc">:/Images/IconStartFile.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -1565,7 +1565,7 @@ color: #FFFFFF;</string>
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap resource="UserInterface.qrc">:/UserInterface/BackGround.png</pixmap>
+     <pixmap resource="UserInterface.qrc">:/Images/BackGround.png</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>

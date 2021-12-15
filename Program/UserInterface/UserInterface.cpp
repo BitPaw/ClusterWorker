@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+
+#include <File/File.h>
+
 #include "DeployWorkInfo.h"
 
 #define ColorRed "FF4444"
@@ -13,18 +16,14 @@
 #define ColorYellow "FFFF44"
 #define DefaultPort "25666"
 
+#define SreverWorkingFolder "WorkFolder_Server"
+
 UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
 {
     ui.setupUi(this);
 
     _server.EventCallBackSocket = this;
     _server.EventCallBackServer = this;
-
-
-    _clientInfoListSizeCurrent = 0;
-    _clientInfoListSizeMaximal = 10;
-    _clientInfoList = new ClientInfo[_clientInfoListSizeMaximal];
-
 
     _textConsoleAsyncLock.Create();
 
@@ -226,14 +225,31 @@ void UserInterface::OnButtonStartClicked()
 
     char serverExecutableFilePath[260];
     char serverExecutableInputFilePath[260];
-    char parameterList[512];
+    char serverResultFilePath[260];
+    char consoleOutPut[1024];
+    char parameterList[1024];
 
     TextBoxToCharArray(*ui.TextBoxServerWorkFilePath, serverExecutableInputFilePath);
     TextBoxToCharArray(*ui.TextBoxServerFile, serverExecutableFilePath);
+    TextBoxToCharArray(*ui.TextBoxResultFile, serverResultFilePath);
 
     ui.ProgressBarWork->setValue(25);
 
-    sprintf(parameterList, "%i %s", 0, serverExecutableInputFilePath);
+    sprintf
+    (
+        parameterList, 
+        "%i \"%s\" \"%s\" \"%s\"",
+        0, // Mode
+        serverExecutableInputFilePath, // Input
+        serverResultFilePath,
+        SreverWorkingFolder
+    );
+
+    sprintf(consoleOutPut, "[System][#] Starting Executable with parameters.\n%s\n", parameterList);
+
+    WriteToConsole(consoleOutPut);
+
+    BF::File::DirectoryCreate(SreverWorkingFolder);
 
     BF::Program::Execute(serverExecutableFilePath, parameterList, this);
 
@@ -293,7 +309,7 @@ void UserInterface::OnProgramExecuted(bool succesful, intptr_t returnResult, BF:
 {
     char charBuffer[2048];
 
-    sprintf(charBuffer, "[Server] Program executed succesfully <R:%zi E:%i>.\n", returnResult, errorCode);
+    sprintf(charBuffer, "[Server] Program executed <R:%zi E:%i>.\n", returnResult, errorCode);
 
     WriteToConsole(charBuffer);
 
@@ -326,10 +342,12 @@ void UserInterface::OnProgramExecuted(bool succesful, intptr_t returnResult, BF:
         return;
     }
 
+    WriteToConsole("[Server] Deploying work...\n");
+
     DeployWorkInfo* deployWorkInfo = new DeployWorkInfo();
-    deployWorkInfo->UI = this;
+    deployWorkInfo->Clients = &_clientList;
     deployWorkInfo->ServerSystem = &_server;
-    strncpy_s(deployWorkInfo->folderPath, "/*", 260);
+    sprintf(deployWorkInfo->FolderPath, "*.chunk");
 
     _workDeployer.Run(UserInterface::DeployWorkTasksAsync, deployWorkInfo);
 }
@@ -337,9 +355,9 @@ void UserInterface::OnProgramExecuted(bool succesful, intptr_t returnResult, BF:
 ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
 {
     DeployWorkInfo* deployWorkInfo = (DeployWorkInfo*)data;
-    char* folderPath = deployWorkInfo->folderPath;
+    char* folderPath = deployWorkInfo->FolderPath;
     BF::Server* server = deployWorkInfo->ServerSystem;
-    UserInterface* ui = deployWorkInfo->UI;
+    ClientList* clientList = deployWorkInfo->Clients;
     wchar_t** fileList = nullptr;
     size_t fileListSize = 0;
 
@@ -347,7 +365,7 @@ ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
 
     for (size_t currentFileNumber = 0; currentFileNumber < fileListSize; )
     {
-        ClientInfo* clientInfo = ui->GetNextFreeClient();
+        ClientInfo* clientInfo = clientList->GetNextWaiting();
         wchar_t* filePath = fileList[currentFileNumber];
 
         if (!clientInfo)
@@ -357,14 +375,13 @@ ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
         }  
 
         char filePathA[512];
+        char commandDoWork[260];
 
-        wcstombs(filePathA, filePath, 512);
+        wcstombs(filePathA, filePath, 260);     
 
-        char message[260];
+        size_t commandSoWorkSize = sprintf(commandDoWork, "W%s", filePathA);
 
-        sprintf(message, "W");
-
-        BF::SocketActionResult sendMResult = server->SendMessageToClient(clientInfo->SocketID, filePathA, 5);
+        BF::SocketActionResult sendMResult = server->SendMessageToClient(clientInfo->SocketID, commandDoWork, commandSoWorkSize);
 
         if (sendMResult == BF::SocketActionResult::Successful)
         {
@@ -373,6 +390,7 @@ ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
             if (sendFResult == BF::SocketActionResult::Successful)
             {
                 clientInfo->State = ClientState::Working;
+                strcpy(clientInfo->CurrentFileName, filePathA);
                 ++currentFileNumber;
             }
         }
@@ -396,7 +414,7 @@ void UserInterface::OnConnectionListening(const BF::IPAdressInfo& adressInfo)
 {
     char charBuffer[2048];
 
-    sprintf(charBuffer, "[You][%i] Listen on IP:<%s> Port:<%i>.\n", adressInfo.SocketID, adressInfo.IP, adressInfo.Port);
+    sprintf(charBuffer, "[Server][%i] Listen on IP:<%s> Port:<%i>.\n", adressInfo.SocketID, adressInfo.IP, adressInfo.Port);
 
     WriteToConsole(charBuffer);
 }
@@ -411,7 +429,9 @@ void UserInterface::OnConnectionTerminated(const BF::IPAdressInfo& adressInfo)
 {
     char charBuffer[2048];
 
-    sprintf(charBuffer, "[Client][%i] Connection Terminated!\n", adressInfo.SocketID);
+    _clientList.UnRegister(adressInfo.SocketID);
+
+    sprintf(charBuffer, "[Client][%i] Disconnected!\n", adressInfo.SocketID);
 
     WriteToConsole(charBuffer);
 }
@@ -420,7 +440,7 @@ void UserInterface::OnMessageSend(BF::IOSocketMessage socketMessage)
 {
     char charBuffer[2048];
 
-    sprintf(charBuffer, "[You][%i] Message (%zi Bytes)\n", socketMessage.SocketID, socketMessage.MessageSize);
+    sprintf(charBuffer, "[Server][%i] Message (%zi Bytes)\n", socketMessage.SocketID, socketMessage.MessageSize);
 
     WriteToConsole(charBuffer);
 }
@@ -428,6 +448,86 @@ void UserInterface::OnMessageSend(BF::IOSocketMessage socketMessage)
 void UserInterface::OnMessageReceive(BF::IOSocketMessage socketMessage)
 {
     char charBuffer[2048];
+    ClientInfo* clientInfo = _clientList.GetViaID(socketMessage.SocketID);
+    
+    switch (clientInfo->State)
+    {
+        case ClientState::NotConnected:
+        {
+            break;
+        }
+        case ClientState::IDLE:
+        {
+            if (socketMessage.Message[0] == 'N')
+            {
+                strcpy(clientInfo->Name, socketMessage.Message + 1);
+                char consoleOutPut[128];
+
+                sprintf(consoleOutPut, "[Client][%i] Renamed himself to <%s>\n", clientInfo->SocketID, clientInfo->Name);
+
+                WriteToConsole(consoleOutPut);
+            }
+
+            break;
+        }
+        case ClientState::Working:
+        {
+            if (socketMessage.Message[0] == 'R')
+            {
+                char fullWorkPath[260];
+                char* filePathWork = clientInfo->CurrentFileName;
+
+                for (size_t i = 0; i < 260; i++)
+                {
+                    bool isDot = filePathWork[i] == '.';
+                  
+                    if (isDot)
+                    {
+                        strcpy(filePathWork + i + 1, "result");
+                        break;
+                    }
+                }              
+                
+                sprintf(fullWorkPath, "%s/%s", SreverWorkingFolder, filePathWork);
+
+                clientInfo->CurrentFile = fopen(fullWorkPath, "wb");
+
+                clientInfo->State = ClientState::SendingResult;
+
+                char consoleOutPut[128];
+
+                sprintf(consoleOutPut, "[Client][%i] Finished. Recieving result...\n", clientInfo->SocketID);
+
+                WriteToConsole(consoleOutPut);
+            }
+
+            break;
+        }
+        case ClientState::SendingResult:
+        {
+            fwrite(socketMessage.Message, sizeof(char), socketMessage.MessageSize-1, clientInfo->CurrentFile);
+
+            if (socketMessage.MessageSize < SocketBufferSize)
+            {
+                int closeResult = fclose(clientInfo->CurrentFile);
+
+                clientInfo->CurrentFile = nullptr;
+                memset(clientInfo->CurrentFileName, 0, sizeof(clientInfo->CurrentFileName));
+
+                clientInfo->State = ClientState::IDLE;
+
+                char consoleOutPut[128];
+
+                sprintf(consoleOutPut, "[Client][%i] Finished sending data. Client is now IDLE\n", clientInfo->SocketID);
+
+                WriteToConsole(consoleOutPut);
+            }
+        }
+        default:
+        {
+            break;
+        }
+    }
 
     sprintf(charBuffer, "[Client][%i] Message (%zi Bytes)\n", socketMessage.SocketID, socketMessage.MessageSize);
 
@@ -437,18 +537,19 @@ void UserInterface::OnMessageReceive(BF::IOSocketMessage socketMessage)
 void UserInterface::OnClientConnected(BF::Client& client)
 {
     QTableWidget& tableWidget = *(ui.TableClientList);
-
-    char* clientName = client.AdressInfo.IP == '\0' ? "Client" : client.AdressInfo.IP;
-
     char textID[255];
     sprintf(textID, "%i", client.AdressInfo.SocketID);
+
+    client.AdressInfo.IPFromBinaryFormat();
+
+    ClientInfo* info = _clientList.Register(client.AdressInfo.SocketID);
 
     int rowCount = tableWidget.rowCount();
 
     tableWidget.insertRow(rowCount);
     tableWidget.setItem(rowCount, 0, new QTableWidgetItem(textID));
-    tableWidget.setItem(rowCount, 1, new QTableWidgetItem(clientName));
-    tableWidget.setItem(rowCount, 2, new QTableWidgetItem("Conneced"));
+    tableWidget.setItem(rowCount, 1, new QTableWidgetItem("Client"));
+    tableWidget.setItem(rowCount, 2, new QTableWidgetItem(ClientStateToString(info->State)));
 }
 
 void UserInterface::OpenFileAndSelect(QLineEdit& lineEdit)
@@ -608,36 +709,12 @@ void UserInterface::TextBoxToCharArray(QLineEdit& textbox, char* buffer)
 
     const char* carray = stdString.c_str();
 
-    memset(buffer, 0, 260);
-    strncpy_s(buffer, 260, carray, stdString.size());
+    sprintf(buffer, "%s", carray);
 }
 
-ClientInfo* UserInterface::GetNextFreeClient()
+void UserInterface::SetFilePath(char* path, const char* filePath)
 {
-    for (size_t i = 0; i < _clientInfoListSizeCurrent; i++)
-    {
-        ClientInfo& clientInfo = _clientInfoList[i];
+    const char* workPath = SreverWorkingFolder;
 
-        if (clientInfo.State == ClientState::IDLE)
-        {
-            return &_clientInfoList[i];
-        }
-    }
-
-    return nullptr;
-}
-
-ClientInfo* UserInterface::GetClientViaID(int socketID)
-{
-    for (size_t i = 0; i < _clientInfoListSizeCurrent; i++)
-    {
-        ClientInfo& clientInfo = _clientInfoList[i];
-
-        if (clientInfo.SocketID == socketID)
-        {
-            return &_clientInfoList[i];
-        }
-    }
-
-    return nullptr;
+    sprintf(path, "%s/%s", workPath, filePath);
 }

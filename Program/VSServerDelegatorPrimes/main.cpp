@@ -7,21 +7,25 @@
 
 using namespace BF;
 
+const char* _workingDirectory = nullptr;
+
 void FileOut(int chunkNr, std::string out)
 {
-	std::string path;// = "C:/Users/Merdo/Desktop/-- VS/ClusterWorker/Program/x64/Debug/";
-	path += std::to_string(chunkNr);
-	path += ".chunk";
+	char path[260];
+	FILE* stream = nullptr;
 
-	FILE* stream;
-	fopen_s(&stream, path.c_str(), "wb+");
-	if (stream) {
+	sprintf_s(path, "%s/%i.chunk", _workingDirectory, chunkNr);
+
+	fopen_s(&stream, path, "wb+");
+
+	if (stream) 
+	{
 		fprintf_s(stream, out.c_str());
 		fclose(stream);
 	}
 }
 
-void Splitter(char* path)
+void Splitter(const char* path)
 {
 	FileStream fs;
 	
@@ -73,30 +77,47 @@ void Splitter(char* path)
 	}
 }
 
-void Combine()
+void Combine(const char* filePathOutput)
 {
 	//TODO: getAllResults and Combine
 }
 
+#define ModeSplitt 0
+#define ModeCombine 1
+#define ExitInvalidParameters -10
+#define ExitInvalidMode -11
+
 int main(int numberOfParameters, char** parameterList)
 {
-	const int mode = *parameterList[1] - '0';
-	//printf("%i\n", mode);
-	
-	if (numberOfParameters == 2 && mode == 1)
+	if (numberOfParameters != 5)
 	{
-		Combine();
-		return EXIT_SUCCESS;
-	}
-	
-	if (numberOfParameters == 3 && mode == 0)
-	{
-		char* path = parameterList[2];
-		//printf("%s\n", path);
-
-		Splitter(path);
-		return EXIT_SUCCESS;
+		return ExitInvalidParameters;
 	}
 
-	return -3;
+	const char* mode = parameterList[1];
+	const char* inputFilePath = parameterList[2];
+	const char* outputFilePath = parameterList[3];
+	_workingDirectory = parameterList[4];
+	const int modeID = mode[0] - '0';
+
+	switch (modeID)
+	{
+		case ModeSplitt:
+		{
+			Splitter(inputFilePath);
+			break;
+		}
+		case ModeCombine:
+		{
+			Combine(outputFilePath);
+			break;			
+		}
+
+		default:
+		{
+			return ExitInvalidMode;
+		}		
+	}
+
+	return EXIT_SUCCESS;
 }

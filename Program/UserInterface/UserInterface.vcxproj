@@ -99,6 +99,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ServerInternal\ClientList.cpp" />
     <ClCompile Include="DeployWorkInfo.cpp" />
     <ClCompile Include="ServerInternal\ClientInfo.cpp" />
     <ClCompile Include="ServerInternal\ClientState.cpp" />
@@ -113,11 +114,19 @@
     <QtMoc Include="UserInterface.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ServerInternal\ClientList.h" />
     <ClInclude Include="DeployWorkInfo.h" />
     <ClInclude Include="ServerInternal\ClientInfo.h" />
     <ClInclude Include="ServerInternal\ClientState.h" />
     <ClInclude Include="ServerInternal\ServerState.h" />
     <ClInclude Include="UserInteractLevel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="BackGround.png" />
+    <Image Include="IconClientCalc.png" />
+    <Image Include="IconEndFile.png" />
+    <Image Include="IconServerCalc.png" />
+    <Image Include="IconStartFile.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
