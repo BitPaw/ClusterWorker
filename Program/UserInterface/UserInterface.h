@@ -14,6 +14,7 @@
 #include "ServerInternal/ServerState.h"
 #include "ServerInternal/ClientInfo.h"
 #include "ServerInternal/ClientList.h"
+#include <Time/StopWatch.h>
 
 class UserInterface :   public QMainWindow, 
                         public BF::ISocketListener, 
@@ -37,11 +38,19 @@ public slots:
 
     void OnButtonStartClicked();
 
+    void GetServerWorkPath(char* workPath);
+
+    void OnTaskFinished(int clientSocketID);
+
 private:
     Ui::UserInterfaceClass ui;
     BF::AsyncLock _textConsoleAsyncLock;
 
     //---<Server internal>----
+    size_t _tasksDone;
+    size_t _tasksToDo;
+    BF::StopWatch _elapsedTime;
+
     BF::Server _server;
     ServerState _stateCurrent;
 
@@ -49,6 +58,8 @@ private:
     static ThreadFunctionReturnType DeployWorkTasksAsync(void* data);
 
     ClientList _clientList;
+
+    void SetTaskAmount(int amountOfTasks);
     //-----------------------
 
     void OpenFileAndSelect(QLineEdit& lineEdit);

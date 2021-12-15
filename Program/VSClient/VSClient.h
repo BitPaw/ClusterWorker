@@ -46,7 +46,6 @@ namespace VS
 		void StartConnectingLoop();
 		void StartConnectingLoop(const char* ipString, const char* portString);
 
-
 		bool RecieveFileChunk(char* input, size_t inputSize, FILE* file, size_t& currentSize);
 
 		//---<Events>----------------------------------------------------------
@@ -69,9 +68,6 @@ namespace VS
 
 		//---<External Execute>----------------------
 		void ProgramExecute();
-	
-		void ExecutableFilePathSet(char* targetExecutableFilePath);
-
 		void OnProgramExecuted(bool succesful, intptr_t returnResult, BF::ErrorCode errorCode);	
 		//---------------------------------------------------------------------
 	};

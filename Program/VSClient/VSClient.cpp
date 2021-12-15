@@ -18,15 +18,14 @@ using namespace BF;
 VS::VSClient::VSClient()
 {
 	State = VSMessageType::Invalid;
+    Port = 0;
+
+    _client.EventCallBackSocket = this;
 
 	memset(IP, '#', VSClientIPLength);
 
     sprintf(_filePathInput, "%s/%s", WorkDirectoryName, FileNameInput);
     sprintf(_filePathOutPut, "%s/%s", WorkDirectoryName, FileNameOutPut);
-
-	Port = 0;
-
-    _client.EventCallBackSocket = this;
 }
 
 void VS::VSClient::IPSet(const char* ip)
@@ -167,6 +166,11 @@ void VS::VSClient::OnMessageReceive(BF::IOSocketMessage socketMessage)
 
     switch (State)
     {
+        case VSMessageType::Working:
+        {
+            printf("[Client][!] Currently working... Not respondinsg to message.\n");
+            break;
+        }
         case VSMessageType::IDLE:
         {
             VSMessageToken messageToken;
@@ -211,7 +215,6 @@ void VS::VSClient::OnMessageReceive(BF::IOSocketMessage socketMessage)
 
             break;
         }
-
         default:
         {
             printf("[System][x] Recieved message in an undefined state! State:%i\n", State);
@@ -265,9 +268,13 @@ void VS::VSClient::OnMessageTokenRecived(VSMessageToken messageToken, int socket
         case VS::VSMessageType::ReceiveExecuteable:
         {
             StateChange(VSMessageType::ReceiveExecuteable);
-            ExecutableFilePathSet(messageToken.Data);
+
+            sprintf(TargetExecutableFilePath, "%s/%s", WorkDirectoryName, messageToken.Data);
+
+            printf("[Client][i] Targeted Executable set to <%s>.\n", TargetExecutableFilePath);
 
             File::DirectoryCreate(WorkDirectoryName);
+            File::Remove(TargetExecutableFilePath);
 
             _fileBuffer = fopen(TargetExecutableFilePath, "wb");
             break;
@@ -277,6 +284,7 @@ void VS::VSClient::OnMessageTokenRecived(VSMessageToken messageToken, int socket
             StateChange(VSMessageType::ReceiveWork);
    
             File::DirectoryCreate(WorkDirectoryName);
+            File::Remove(_filePathInput);
 
             _fileBuffer = fopen(_filePathInput, "wb");
             break;
@@ -288,13 +296,6 @@ void VS::VSClient::OnMessageTokenRecived(VSMessageToken messageToken, int socket
         default:
             break;
     }
-}
-
-void VS::VSClient::ExecutableFilePathSet(char* targetExecutableFilePath)
-{
-    sprintf(TargetExecutableFilePath, "%s/%s", WorkDirectoryName, targetExecutableFilePath);
-
-    printf("[Client][i] Targeted Executable set to <%s>.\n", TargetExecutableFilePath);
 }
 
 void VS::VSClient::ProgramExecute()
@@ -345,8 +346,8 @@ void VS::VSClient::OnProgramExecuted(bool succesful, intptr_t returnResult, BF::
         size_t messageLength = sprintf(message, "%c", ConvertMessageType(VSMessageType::SendResult));
         
         _client.Send(message, messageLength);
-        _client.SendFile(_filePathOutPut);
-
-        StateChange(VSMessageType::IDLE);
+        _client.SendFile(_filePathOutPut);        
     }
+
+    StateChange(VSMessageType::IDLE);
 }

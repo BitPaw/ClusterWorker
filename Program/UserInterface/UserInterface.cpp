@@ -16,7 +16,7 @@
 #define ColorYellow "FFFF44"
 #define DefaultPort "25666"
 
-#define SreverWorkingFolder "WorkFolder_Server"
+#define ServerWorkingFolder "WorkFolder_Server"
 
 UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
 {
@@ -24,6 +24,9 @@ UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
 
     _server.EventCallBackSocket = this;
     _server.EventCallBackServer = this;
+
+    _tasksDone = 0;
+    _tasksToDo = 0;
 
     _textConsoleAsyncLock.Create();
 
@@ -221,6 +224,8 @@ void UserInterface::OnButtonStartClicked()
 
     StateChange(ServerState::Starting);
 
+    _elapsedTime.Start();
+
     ui.ProgressBarWork->setValue(10);
 
     char serverExecutableFilePath[260];
@@ -228,6 +233,7 @@ void UserInterface::OnButtonStartClicked()
     char serverResultFilePath[260];
     char consoleOutPut[1024];
     char parameterList[1024];
+    char serverServerWorkingFolderPath[260];
 
     TextBoxToCharArray(*ui.TextBoxServerWorkFilePath, serverExecutableInputFilePath);
     TextBoxToCharArray(*ui.TextBoxServerFile, serverExecutableFilePath);
@@ -235,27 +241,65 @@ void UserInterface::OnButtonStartClicked()
 
     ui.ProgressBarWork->setValue(25);
 
+    GetServerWorkPath(serverServerWorkingFolderPath);   
+
     sprintf
     (
         parameterList, 
         "%i \"%s\" \"%s\" \"%s\"",
         0, // Mode
         serverExecutableInputFilePath, // Input
-        serverResultFilePath,
-        SreverWorkingFolder
+        serverResultFilePath, // Out
+        serverServerWorkingFolderPath // WorkDir
     );
 
     sprintf(consoleOutPut, "[System][#] Starting Executable with parameters.\n%s\n", parameterList);
 
     WriteToConsole(consoleOutPut);
 
-    BF::File::DirectoryCreate(SreverWorkingFolder);
-
     BF::Program::Execute(serverExecutableFilePath, parameterList, this);
 
     ui.ProgressBarWork->setValue(50);
 
     StateChange(ServerState::Started);
+}
+
+void UserInterface::GetServerWorkPath(char* workPath)
+{
+    BF::File::WorkingDirectoryGet(workPath, 260);
+
+    size_t length = strlen(workPath);
+
+    strcpy(workPath + length, "/");
+    strcpy(workPath + length + 1, ServerWorkingFolder);
+
+    BF::File::DirectoryCreate(workPath);
+}
+
+void UserInterface::OnTaskFinished(int clientSocketID)
+{
+    char consoleOutPut[128];
+    char taskCompleted[128];
+    char currentTimeText[128];   
+    int progressValue = 50.0f + ((++_tasksDone / (float)_tasksToDo) * 50.0f);
+    float currentTime = _elapsedTime.TimeStamp();
+    bool finished = _tasksDone == _tasksToDo;  
+
+    sprintf(consoleOutPut, "[Client][%i] Finished Task (%zu/%zu). Client is now IDLE\n", clientSocketID, _tasksDone, _tasksToDo);
+
+    WriteToConsole(consoleOutPut);
+    
+    sprintf(taskCompleted, "%zu/%zu", _tasksDone, _tasksToDo);
+    //sprintf(taskCompleted, "%i/%i", _tasksDone, _tasksToDo); 
+
+    //ui.ProgressBarWork->setValue(progressValue);
+    //ui.LabelTaskCompletetValue->setText(taskCompleted);
+
+    if (finished)
+    {
+        _elapsedTime.Stop();
+        WriteToConsole("[Server] --- TASK COMPLETED ---\n");
+    }
 }
 
 void UserInterface::OnButtonResultFileSelectClicked()
@@ -344,10 +388,17 @@ void UserInterface::OnProgramExecuted(bool succesful, intptr_t returnResult, BF:
 
     WriteToConsole("[Server] Deploying work...\n");
 
+    char currentPath[260];
+
+    GetServerWorkPath(currentPath);
+
     DeployWorkInfo* deployWorkInfo = new DeployWorkInfo();
     deployWorkInfo->Clients = &_clientList;
     deployWorkInfo->ServerSystem = &_server;
-    sprintf(deployWorkInfo->FolderPath, "*.chunk");
+    deployWorkInfo->UI = this;
+
+    sprintf(deployWorkInfo->FolderPath, "%s", currentPath);
+    sprintf(deployWorkInfo->FolderPathSearchChunk, "%s/*.chunk", currentPath);
 
     _workDeployer.Run(UserInterface::DeployWorkTasksAsync, deployWorkInfo);
 }
@@ -356,12 +407,16 @@ ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
 {
     DeployWorkInfo* deployWorkInfo = (DeployWorkInfo*)data;
     char* folderPath = deployWorkInfo->FolderPath;
+    char* folderPathSeachChunks = deployWorkInfo->FolderPathSearchChunk;
     BF::Server* server = deployWorkInfo->ServerSystem;
     ClientList* clientList = deployWorkInfo->Clients;
+
     wchar_t** fileList = nullptr;
     size_t fileListSize = 0;
 
-    BF::File::FilesInFolder(folderPath, &fileList, fileListSize);
+    BF::File::FilesInFolder(folderPathSeachChunks, &fileList, fileListSize);
+
+    deployWorkInfo->UI->SetTaskAmount(fileListSize);
 
     for (size_t currentFileNumber = 0; currentFileNumber < fileListSize; )
     {
@@ -374,23 +429,23 @@ ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
             continue;
         }  
 
-        char filePathA[512];
+        char filePathFullA[512];
         char commandDoWork[260];
 
-        wcstombs(filePathA, filePath, 260);     
+        sprintf(filePathFullA, "%s/%ls", folderPath, filePath);
 
-        size_t commandSoWorkSize = sprintf(commandDoWork, "W%s", filePathA);
+        size_t commandSoWorkSize = sprintf(commandDoWork, "W%ls", filePath);
 
         BF::SocketActionResult sendMResult = server->SendMessageToClient(clientInfo->SocketID, commandDoWork, commandSoWorkSize);
 
         if (sendMResult == BF::SocketActionResult::Successful)
         {
-            BF::SocketActionResult sendFResult = server->SendFileToClient(clientInfo->SocketID, filePathA);
+            BF::SocketActionResult sendFResult = server->SendFileToClient(clientInfo->SocketID, filePathFullA);
 
             if (sendFResult == BF::SocketActionResult::Successful)
             {
+                sprintf(clientInfo->CurrentFileName, "%ls", filePath);
                 clientInfo->State = ClientState::Working;
-                strcpy(clientInfo->CurrentFileName, filePathA);
                 ++currentFileNumber;
             }
         }
@@ -450,6 +505,8 @@ void UserInterface::OnMessageReceive(BF::IOSocketMessage socketMessage)
     char charBuffer[2048];
     ClientInfo* clientInfo = _clientList.GetViaID(socketMessage.SocketID);
     
+    sprintf(charBuffer, "[Client][%i] Message (%zi Bytes)\n", socketMessage.SocketID, socketMessage.MessageSize);
+
     switch (clientInfo->State)
     {
         case ClientState::NotConnected:
@@ -475,7 +532,10 @@ void UserInterface::OnMessageReceive(BF::IOSocketMessage socketMessage)
             if (socketMessage.Message[0] == 'R')
             {
                 char fullWorkPath[260];
-                char* filePathWork = clientInfo->CurrentFileName;
+                char currentWorkPath[260];
+                char* filePathWork = clientInfo->CurrentFileName;       
+
+                GetServerWorkPath(currentWorkPath);
 
                 for (size_t i = 0; i < 260; i++)
                 {
@@ -488,9 +548,11 @@ void UserInterface::OnMessageReceive(BF::IOSocketMessage socketMessage)
                     }
                 }              
                 
-                sprintf(fullWorkPath, "%s/%s", SreverWorkingFolder, filePathWork);
+                sprintf(fullWorkPath, "%s/%s", currentWorkPath, filePathWork);
 
                 clientInfo->CurrentFile = fopen(fullWorkPath, "wb");
+
+                assert(clientInfo->CurrentFile);
 
                 clientInfo->State = ClientState::SendingResult;
 
@@ -505,6 +567,8 @@ void UserInterface::OnMessageReceive(BF::IOSocketMessage socketMessage)
         }
         case ClientState::SendingResult:
         {
+            assert(clientInfo->CurrentFile);
+
             fwrite(socketMessage.Message, sizeof(char), socketMessage.MessageSize-1, clientInfo->CurrentFile);
 
             if (socketMessage.MessageSize < SocketBufferSize)
@@ -516,11 +580,7 @@ void UserInterface::OnMessageReceive(BF::IOSocketMessage socketMessage)
 
                 clientInfo->State = ClientState::IDLE;
 
-                char consoleOutPut[128];
-
-                sprintf(consoleOutPut, "[Client][%i] Finished sending data. Client is now IDLE\n", clientInfo->SocketID);
-
-                WriteToConsole(consoleOutPut);
+                OnTaskFinished(clientInfo->SocketID);          
             }
         }
         default:
@@ -528,8 +588,6 @@ void UserInterface::OnMessageReceive(BF::IOSocketMessage socketMessage)
             break;
         }
     }
-
-    sprintf(charBuffer, "[Client][%i] Message (%zi Bytes)\n", socketMessage.SocketID, socketMessage.MessageSize);
 
     WriteToConsole(charBuffer);
 }
@@ -550,6 +608,12 @@ void UserInterface::OnClientConnected(BF::Client& client)
     tableWidget.setItem(rowCount, 0, new QTableWidgetItem(textID));
     tableWidget.setItem(rowCount, 1, new QTableWidgetItem("Client"));
     tableWidget.setItem(rowCount, 2, new QTableWidgetItem(ClientStateToString(info->State)));
+}
+
+void UserInterface::SetTaskAmount(int amountOfTasks)
+{
+    _tasksDone = 0;
+    _tasksToDo = amountOfTasks;
 }
 
 void UserInterface::OpenFileAndSelect(QLineEdit& lineEdit)
@@ -714,7 +778,7 @@ void UserInterface::TextBoxToCharArray(QLineEdit& textbox, char* buffer)
 
 void UserInterface::SetFilePath(char* path, const char* filePath)
 {
-    const char* workPath = SreverWorkingFolder;
+    const char* workPath = ServerWorkingFolder;
 
     sprintf(path, "%s/%s", workPath, filePath);
 }
