@@ -1,15 +1,16 @@
 #include "UserInterface.h"
+
 #include <wchar.h>
-#include <File/OpenFileDialog.h>
-#include <File/Program.h>
-#include <File/File.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 
 #include <File/File.h>
+#include <File/OpenFileDialog.h>
+#include <File/Program.h>
 
 #include "DeployWorkInfo.h"
+#include "UserSafeFile.h"
 
 #define ColorRed "FF4444"
 #define ColorGreen "44FF44"
@@ -30,6 +31,11 @@ UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
 
     _textConsoleAsyncLock.Create();
 
+
+    SafeFileLoad();
+
+
+    //---<Setup UI>------------------------------------------------------------
     ui.TextBoxPort->setText(DefaultPort);
     //ui.TableClientList->setColumnWidth(0, 10);
 
@@ -53,6 +59,7 @@ UserInterface::UserInterface(QWidget *parent) : QMainWindow(parent)
     connect(ui.TextBoxPort, &QLineEdit::textChanged, this, &UserInterface::CheckOpenServerButton);
 
     ui.TextConsole->ensureCursorVisible();
+    //-------------------------------------------------------------------------
 
     StateChange(ServerState::IDLE); // Check all buttons
 }
@@ -145,6 +152,8 @@ void UserInterface::OnButtonDeployApplicationClicked()
         }
     }
 
+    SafeFileSafe();
+
     ui.ProgressBarDeployApplication->setValue(10);
 
     QString& filePathQ = ui.TextBoxClientFile->text();
@@ -194,6 +203,26 @@ void UserInterface::OnButtonDeployApplicationClicked()
     }   
 }
 
+void UserInterface::GenerateServerExecutableParameters(char* buffer, const int mode, const char* in)
+{
+    char serverServerWorkingFolderPath[260];
+    char serverResultFilePath[260];
+
+    TextBoxToCharArray(*ui.TextBoxResultFile, serverResultFilePath);
+
+    GetServerWorkPath(serverServerWorkingFolderPath);
+
+    sprintf
+    (
+        buffer,
+        "%i \"%s\" \"%s\" \"%s\"",
+        mode, // Mode
+        in, // Input
+        serverResultFilePath, // Out
+        serverServerWorkingFolderPath // WorkDir
+    );
+}
+
 void UserInterface::OnButtonStartClicked()
 {
     UserInteractLevel canPressButton = CanUserStart();
@@ -230,32 +259,20 @@ void UserInterface::OnButtonStartClicked()
 
     char serverExecutableFilePath[260];
     char serverExecutableInputFilePath[260];
-    char serverResultFilePath[260];
-    char consoleOutPut[1024];
     char parameterList[1024];
-    char serverServerWorkingFolderPath[260];
 
-    TextBoxToCharArray(*ui.TextBoxServerWorkFilePath, serverExecutableInputFilePath);
     TextBoxToCharArray(*ui.TextBoxServerFile, serverExecutableFilePath);
-    TextBoxToCharArray(*ui.TextBoxResultFile, serverResultFilePath);
+    TextBoxToCharArray(*ui.TextBoxServerWorkFilePath, serverExecutableInputFilePath);  
 
     ui.ProgressBarWork->setValue(25);
 
-    GetServerWorkPath(serverServerWorkingFolderPath);   
+    GenerateServerExecutableParameters(parameterList, 0, serverExecutableInputFilePath);
 
-    sprintf
-    (
-        parameterList, 
-        "%i \"%s\" \"%s\" \"%s\"",
-        0, // Mode
-        serverExecutableInputFilePath, // Input
-        serverResultFilePath, // Out
-        serverServerWorkingFolderPath // WorkDir
-    );
-
-    sprintf(consoleOutPut, "[System][#] Starting Executable with parameters.\n%s\n", parameterList);
-
-    WriteToConsole(consoleOutPut);
+    {
+        char consoleOutPut[1024];
+        sprintf(consoleOutPut, "[System][#] Starting Executable with parameters.\n%s\n", parameterList);
+        WriteToConsole(consoleOutPut);
+    }   
 
     BF::Program::Execute(serverExecutableFilePath, parameterList, this);
 
@@ -293,13 +310,68 @@ void UserInterface::OnTaskFinished(int clientSocketID)
     //sprintf(taskCompleted, "%i/%i", _tasksDone, _tasksToDo); 
 
     //ui.ProgressBarWork->setValue(progressValue);
-    //ui.LabelTaskCompletetValue->setText(taskCompleted);
+    //ui.LabelTaskCompletetValue->setText(taskCompleted);  
 
     if (finished)
     {
-        _elapsedTime.Stop();
-        WriteToConsole("[Server] --- TASK COMPLETED ---\n");
+        OnAllTasksCompleted();
     }
+}
+
+void UserInterface::OnAllTasksCompleted()
+{
+    _elapsedTime.Stop();
+    WriteToConsole("[Server] --- TASK COMPLETED ---\n");
+    WriteToConsole("[Server] Combine results...\n");
+
+    wchar_t** fileList = nullptr;
+    size_t fileListSize = 0;
+    char filePath[260];
+    char searchPattern[270];
+    char fileName[260];
+
+    GetServerWorkPath(filePath);
+
+    sprintf(fileName, "%s/%s", filePath, "TaskResultFiles.info");
+    sprintf(searchPattern, "%s/*.result", filePath);
+
+    BF::File::FilesInFolder(searchPattern, &fileList, fileListSize);
+
+    BF::File::Remove(fileName);
+    FILE* file = fopen(fileName, "wb");
+
+    if (!file)
+    {
+        return; // Error
+    }
+
+    for (size_t i = 0; i < fileListSize; i++)
+    {
+        fprintf(file, "%ls\n", fileList[i]);
+    }
+
+    int result = fclose(file);
+
+    if (result)
+    {
+        return; // Error?
+    }
+
+
+    char serverExecutableFilePath[260];
+    char parameterList[1024];
+
+    TextBoxToCharArray(*ui.TextBoxServerFile, serverExecutableFilePath);
+
+    GenerateServerExecutableParameters(parameterList, 1, fileName);
+
+    {
+        char consoleOutPut[1024];
+        sprintf(consoleOutPut, "[System][#] Starting Executable with parameters.\n%s\n", parameterList);
+        WriteToConsole(consoleOutPut);
+    }
+
+    BF::Program::Execute(serverExecutableFilePath, parameterList, this);
 }
 
 void UserInterface::OnButtonResultFileSelectClicked()
@@ -386,21 +458,36 @@ void UserInterface::OnProgramExecuted(bool succesful, intptr_t returnResult, BF:
         return;
     }
 
-    WriteToConsole("[Server] Deploying work...\n");
+    if (!deployedWork)
+    {
+        WriteToConsole("[Server] Deploying work...\n");
 
-    char currentPath[260];
+        char currentPath[260];
 
-    GetServerWorkPath(currentPath);
+        GetServerWorkPath(currentPath);
 
-    DeployWorkInfo* deployWorkInfo = new DeployWorkInfo();
-    deployWorkInfo->Clients = &_clientList;
-    deployWorkInfo->ServerSystem = &_server;
-    deployWorkInfo->UI = this;
+        DeployWorkInfo* deployWorkInfo = new DeployWorkInfo();
+        deployWorkInfo->Clients = &_clientList;
+        deployWorkInfo->ServerSystem = &_server;
+        deployWorkInfo->UI = this;
 
-    sprintf(deployWorkInfo->FolderPath, "%s", currentPath);
-    sprintf(deployWorkInfo->FolderPathSearchChunk, "%s/*.chunk", currentPath);
+        sprintf(deployWorkInfo->FolderPath, "%s", currentPath);
+        sprintf(deployWorkInfo->FolderPathSearchChunk, "%s/*.chunk", currentPath);
 
-    _workDeployer.Run(UserInterface::DeployWorkTasksAsync, deployWorkInfo);
+        _workDeployer.Run(UserInterface::DeployWorkTasksAsync, deployWorkInfo);
+
+        deployedWork = true;
+    } 
+    else
+    {
+        int msgboxID = MessageBox
+        (
+            NULL,
+            L"Operation finished sucessfully",
+            (LPCWSTR)L"Execution complete",
+            MB_ICONINFORMATION | MB_OK | MB_TOPMOST
+        );
+    }
 }
 
 ThreadFunctionReturnType UserInterface::DeployWorkTasksAsync(void* data)
@@ -774,6 +861,30 @@ void UserInterface::TextBoxToCharArray(QLineEdit& textbox, char* buffer)
     const char* carray = stdString.c_str();
 
     sprintf(buffer, "%s", carray);
+}
+
+void UserInterface::SafeFileLoad()
+{
+    UserSafeFile userSafeFile;
+
+    userSafeFile.Load();
+
+    ui.TextBoxServerWorkFilePath->setText(userSafeFile.FilePathInput);
+    ui.TextBoxClientFile->setText(userSafeFile.FilePathClient);
+    ui.TextBoxServerFile->setText(userSafeFile.FilePathServer);
+    ui.TextBoxResultFile->setText(userSafeFile.FilePathOutPut);
+}
+
+void UserInterface::SafeFileSafe()
+{
+    UserSafeFile userSafeFile;
+
+    TextBoxToCharArray(*ui.TextBoxServerWorkFilePath, userSafeFile.FilePathInput);
+    TextBoxToCharArray(*ui.TextBoxClientFile, userSafeFile.FilePathClient);
+    TextBoxToCharArray(*ui.TextBoxServerFile, userSafeFile.FilePathServer);
+    TextBoxToCharArray(*ui.TextBoxResultFile, userSafeFile.FilePathOutPut);
+
+    userSafeFile.Save();
 }
 
 void UserInterface::SetFilePath(char* path, const char* filePath)

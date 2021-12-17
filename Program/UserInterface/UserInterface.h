@@ -23,45 +23,41 @@ class UserInterface :   public QMainWindow,
 {
     Q_OBJECT
 
-public:
-    UserInterface(QWidget *parent = Q_NULLPTR);
-   
-public slots:
+    public:
+    UserInterface(QWidget* parent = Q_NULLPTR);
+
+    public slots:
     void OnButtonOpenServerClicked();
 
     void OnButtonResultFileSelectClicked();
     void OnButtonClientFileSelectClicked();
     void OnButtonServerFileSelectClicked();
     void OnButtonInputFileSelectClicked();
-
     void OnButtonDeployApplicationClicked();
-
     void OnButtonStartClicked();
 
-    void GetServerWorkPath(char* workPath);
-
-    void OnTaskFinished(int clientSocketID);
-
-private:
-    Ui::UserInterfaceClass ui;
-    BF::AsyncLock _textConsoleAsyncLock;
-
-    //---<Server internal>----
+    private:
+    //---<Server internal>-----------------------------------------------------
+    bool deployedWork = false;
     size_t _tasksDone;
     size_t _tasksToDo;
     BF::StopWatch _elapsedTime;
 
-    BF::Server _server;
-    ServerState _stateCurrent;
-
-    BF::Thread _workDeployer;
-    static ThreadFunctionReturnType DeployWorkTasksAsync(void* data);
-
     ClientList _clientList;
+    ServerState _stateCurrent;
+    BF::Server _server;
+    BF::Thread _workDeployer;
 
+    static ThreadFunctionReturnType DeployWorkTasksAsync(void* data);
     void SetTaskAmount(int amountOfTasks);
-    //-----------------------
+    //-------------------------------------------------------------------------
 
+    //---<UI Functions>--------------------------------------------------------
+    Ui::UserInterfaceClass ui;
+    BF::AsyncLock _textConsoleAsyncLock;
+
+    void WriteToConsole(char* text);
+    void StateChange(ServerState state);
     void OpenFileAndSelect(QLineEdit& lineEdit);
     void ButtonEnable(QPushButton& button, UserInteractLevel userInteractLevel);
 
@@ -74,18 +70,20 @@ private:
     void CheckStartButton();
     void CheckAbortButton();
     void CheckOpenServerButton();
-
-    void WriteToConsole(char* text);
-
-    void StateChange(ServerState state);
-
-    void TextBoxToCharArray(QLineEdit& textbox, char* buffer);
-
-
+    //-------------------------------------------------------------------------
+   
+    //---<Utility funcitons>---------------------------------------------------
     void SetFilePath(char* path, const char* filePath);
-    
+    void TextBoxToCharArray(QLineEdit& textbox, char* buffer);
+    void GetServerWorkPath(char* workPath);
+    void OnTaskFinished(int clientSocketID);
+    void OnAllTasksCompleted();
+    void GenerateServerExecutableParameters(char* buffer, const int mode, const char* in);
+    void SafeFileLoad();
+    void SafeFileSafe();
+    //-------------------------------------------------------------------------
 
-    //---<Geerbt über ISocketListener>-----------------------------------------
+    //---<I/O Events>----------------------------------------------------------
     void OnConnectionLinked(const BF::IPAdressInfo& adressInfo);
     void OnConnectionListening(const BF::IPAdressInfo& adressInfo);
     void OnConnectionEstablished(const BF::IPAdressInfo& adressInfo);

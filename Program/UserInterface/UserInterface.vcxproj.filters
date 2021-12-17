@@ -55,6 +55,9 @@
     <ClCompile Include="ServerInternal\ClientList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UserSafeFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="UserInterface.h">
@@ -78,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ServerInternal\ClientList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UserSafeFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

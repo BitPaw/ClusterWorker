@@ -106,6 +106,7 @@
     <ClCompile Include="ServerInternal\ServerState.cpp" />
     <ClCompile Include="UserInteractLevel.cpp" />
     <ClCompile Include="UserInterface.cpp" />
+    <ClCompile Include="UserSafeFile.cpp" />
     <QtRcc Include="UserInterface.qrc" />
     <QtUic Include="UserInterface.ui" />
     <ClCompile Include="main.cpp" />
@@ -120,6 +121,7 @@
     <ClInclude Include="ServerInternal\ClientState.h" />
     <ClInclude Include="ServerInternal\ServerState.h" />
     <ClInclude Include="UserInteractLevel.h" />
+    <ClInclude Include="UserSafeFile.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="BackGround.png" />

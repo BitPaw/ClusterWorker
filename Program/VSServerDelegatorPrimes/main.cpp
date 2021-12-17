@@ -82,10 +82,18 @@ void Combine(const char* filePathOutput)
 	//TODO: getAllResults and Combine
 }
 
+//---<Index>--------------------------
+#define IndexMode 1
+#define IndexInputFile 2
+#define IndexOutPutFile 3
+#define IndexWorkDirectory 4
+//---<Modes>--------------------------
 #define ModeSplitt 0
 #define ModeCombine 1
+//---<Exit Codes>---------------------
 #define ExitInvalidParameters -10
 #define ExitInvalidMode -11
+//------------------------------------
 
 int main(int numberOfParameters, char** parameterList)
 {
@@ -94,10 +102,10 @@ int main(int numberOfParameters, char** parameterList)
 		return ExitInvalidParameters;
 	}
 
-	const char* mode = parameterList[1];
-	const char* inputFilePath = parameterList[2];
-	const char* outputFilePath = parameterList[3];
-	_workingDirectory = parameterList[4];
+	const char* mode = parameterList[IndexMode];
+	const char* inputFilePath = parameterList[IndexInputFile];
+	const char* outputFilePath = parameterList[IndexOutPutFile];
+	_workingDirectory = parameterList[IndexWorkDirectory];
 	const int modeID = mode[0] - '0';
 
 	switch (modeID)
