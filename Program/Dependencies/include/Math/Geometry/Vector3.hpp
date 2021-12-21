@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../../Dependencies/include/glm/glm.hpp"
+#include <GLM/glm.hpp>
 #include "../Math.h"
 
 namespace BF
