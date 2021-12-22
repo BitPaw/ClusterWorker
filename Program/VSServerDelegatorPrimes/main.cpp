@@ -13,9 +13,9 @@ void FileOut(int chunkNr, std::string out)
 {
 	char path[260];
 	FILE* stream = nullptr;
-
+	
 	sprintf_s(path, "%s/%i.chunk", _workingDirectory, chunkNr);
-
+	printf("%s", path);
 	fopen_s(&stream, path, "wb+");
 
 	if (stream) 
@@ -77,9 +77,34 @@ void Splitter(const char* path)
 	}
 }
 
-void Combine(const char* filePathOutput)
+void Combine(const char* filePathInput, const char* filePathOutput)
 {
-	//TODO: getAllResults and Combine
+	FileStream fs;
+	fs.ReadFromDisk(filePathInput);
+	char s[2048];	
+	FILE* stream = nullptr;
+	fopen_s(&stream, filePathOutput, "wb+");
+	
+	while(fs.ReadNextLineInto(s))
+	{
+		//printf("%s\n",s);
+		char chunkPath[260];
+		char innerS[2048];
+		
+		FileStream fs2;
+		fs2.ReadFromDisk(chunkPath);
+		sprintf_s(chunkPath, "%s/%s", _workingDirectory, s);
+		//printf("%s\n", chunkPath);
+		while (fs2.ReadNextLineInto(innerS))
+		{
+			if (stream)
+			{
+				fprintf_s(stream,"%s\n", innerS);
+			}
+		}
+	}
+	if (stream)
+		fclose(stream);
 }
 
 //---<Index>--------------------------
@@ -113,11 +138,11 @@ int main(int numberOfParameters, char** parameterList)
 		case ModeSplitt:
 		{
 			Splitter(inputFilePath);
-			break;
+			return EXIT_SUCCESS;
 		}
 		case ModeCombine:
 		{
-			Combine(outputFilePath);
+			Combine(inputFilePath, outputFilePath);
 			break;			
 		}
 
