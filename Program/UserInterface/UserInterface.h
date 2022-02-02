@@ -56,7 +56,7 @@ class UserInterface :   public QMainWindow,
     Ui::UserInterfaceClass ui;
     BF::AsyncLock _textConsoleAsyncLock;
 
-    void WriteToConsole(char* text);
+    void WriteToConsole(const char* text);
     void StateChange(ServerState state);
     void OpenFileAndSelect(QLineEdit& lineEdit);
     void ButtonEnable(QPushButton& button, UserInteractLevel userInteractLevel);

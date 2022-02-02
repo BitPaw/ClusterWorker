@@ -101,7 +101,7 @@ void UserInterface::OnButtonOpenServerClicked()
 
     StateChange(ServerState::ServerOpening);
 
-    QString& portText = ui.TextBoxPort->text();
+    QString portText = ui.TextBoxPort->text();
     unsigned short port = portText.toInt();
 
     BF::SocketActionResult result = _server.Start(port);
@@ -156,7 +156,7 @@ void UserInterface::OnButtonDeployApplicationClicked()
 
     ui.ProgressBarDeployApplication->setValue(10);
 
-    QString& filePathQ = ui.TextBoxClientFile->text();
+    QString filePathQ = ui.TextBoxClientFile->text();
     bool hasPath = !filePathQ.isEmpty();
 
     if (hasPath)
@@ -718,7 +718,7 @@ void UserInterface::ButtonEnable(QPushButton& button, UserInteractLevel userInte
 {
     QStyle* style = button.style();
     char buffer[1024];
-    char* colorTag = nullptr;
+    const char* colorTag = nullptr;
 
     switch (userInteractLevel)
     {
@@ -834,7 +834,7 @@ void UserInterface::CheckOpenServerButton()
     ButtonEnable(*ui.ButtonOpenServer, canUserOpenServer);
 }
 
-void UserInterface::WriteToConsole(char* text)
+void UserInterface::WriteToConsole(const char* text)
 {
     QTextBrowser* console = ui.TextConsole;
 
