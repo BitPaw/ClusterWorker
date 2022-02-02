@@ -17,10 +17,11 @@ namespace BF
 
 		FileActionResult ReadFromDisk(const char* filePath, bool addNullTerminator = false, FilePersistence filePersistence = FilePersistence::Permanent);
 		FileActionResult ReadFromDisk(const wchar_t* filePath, bool addNullTerminator = false, FilePersistence filePersistence = FilePersistence::Permanent);
+				
 		static FileActionResult ReadFromDisk(FILE* file, Byte** targetBuffer, size_t& bufferSize, bool addNullTerminator = false);
 		static FileActionResult ReadFromDisk
 		(
-			const char* filePath,
+			const wchar_t* filePath,
 			Byte** targetBuffer, 
 			size_t& bufferSize, 
 			bool addNullTerminator = false,

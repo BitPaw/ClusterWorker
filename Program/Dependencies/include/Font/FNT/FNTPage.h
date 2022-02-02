@@ -1,15 +1,16 @@
 #pragma once
 
+#include <cstddef>
 #include "FNTCharacter.h"
 
-#define FNTPageFileNameSize 30
+#define FNTPageFileNameSize 50
 
 namespace BF
 {
 	struct FNTPage
 	{
 		public:
-		unsigned int PageID;
+		int PageID;
 		char PageFileName[FNTPageFileNameSize];
 		size_t CharacteListSize;
 		FNTCharacter* CharacteList;

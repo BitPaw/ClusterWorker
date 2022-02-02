@@ -2,6 +2,7 @@
 
 #include "ShaderType.h"
 #include "../Resource.h"
+#include "../File/FileActionResult.hpp"
 #include <cstdlib>
 
 namespace BF
@@ -14,8 +15,8 @@ namespace BF
 		size_t ContentSize;
 
 		Shader();
-		Shader(ShaderType type, const char* content);
+		Shader(ShaderType type, const wchar_t* content);
 
-		void Load();
+		FileActionResult Load();
 	};
 }

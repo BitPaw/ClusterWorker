@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include "../../../SystemRender/Source/RenderMode.h"
 
 namespace BF
@@ -10,6 +12,12 @@ namespace BF
 		bool Original;
 
 		unsigned int VertexArrayID; // VAO
+
+		//---------------------------------------
+		size_t Height;
+		size_t Width;
+		size_t Depth;
+		//---------------------------------------
 
 		//---<Vertex Data>-----------------------
 		unsigned int VertexBufferID; // VBO
@@ -29,13 +37,17 @@ namespace BF
 		RenderMode RenderType;
 		//---------------------------------------
 
+
+
 		MeshStructure();
 		~MeshStructure();
 
 		void Allocate(size_t vertecDataSize, size_t indexDataSize);
+		void Reallocate(size_t vertecDataSize, size_t indexDataSize);
 		void DeAllocate();
 
 		void MeshLink(MeshStructure& mesh);
+		void SizeCheck();
 
 		void PrintData();
 

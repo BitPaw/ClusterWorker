@@ -16,8 +16,12 @@ namespace BF
 		//
 		FileOpenFailure,
 		FileCloseFailure,
+		FileReadFailure,
 
 		// Parsing
+		InvalidHeaderSignature,
+		InvalidVersion,
+
 		FormatNotSupported,
 		FormatNotAsExpected		
 	};

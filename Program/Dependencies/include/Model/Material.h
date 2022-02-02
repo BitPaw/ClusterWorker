@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Image/Image.h"
+#include "../File/FileActionResult.hpp"
 
 namespace BF
 {
@@ -12,8 +13,10 @@ namespace BF
 		float Specular[3];
 		float Emission[3];
 
-		Image Texture;
+		Image* Texture;
 
 		Material();
+
+		FileActionResult Load();
 	};
 }

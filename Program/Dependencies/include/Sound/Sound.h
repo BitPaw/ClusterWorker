@@ -3,6 +3,7 @@
 #include "SoundPlayStyle.hpp"
 #include "SoundFormat.h"
 #include "../Resource.h"
+#include "../File/FileActionResult.hpp"
 
 namespace BF
 {
@@ -20,8 +21,9 @@ namespace BF
 
 		Sound();
 
-		static SoundFormat FileFormatPeek(const char* filePath);
-		void Load(const char* filePath);
-		void Save(const char* filePath, SoundFormat soundFormat);
+		static SoundFormat FileFormatPeek(const wchar_t* filePath);
+		FileActionResult Load();
+		FileActionResult Load(const wchar_t* filePath);
+		FileActionResult Save(const wchar_t* filePath, SoundFormat soundFormat);
 	};
 }

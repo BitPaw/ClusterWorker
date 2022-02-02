@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include "Endian.h"
 
 #define Byte unsigned char
@@ -23,6 +25,8 @@ namespace BF
 
 
 		unsigned int ReadNextLineInto(char* exportBuffer);
+
+		void SkipEndOfLineCharacters();
 
 		void Read(bool& value);
 		void Read(char& value);

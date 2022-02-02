@@ -19,13 +19,15 @@ namespace BF
 		size_t FontPageListSize;
 		FNTPage* FontPageList;
 
-		FNTCharacter* GetCharacterPosition(unsigned char character);
+		FNTCharacter* GetCharacterPosition(const unsigned char character);
 
 		FNT();
 		~FNT();
 
-		FileActionResult Load(const char* filePath);
-		FileActionResult Save(const char* filePath);
+
+
+		FileActionResult Load(const wchar_t* filePath);
+		FileActionResult Save(const wchar_t* filePath);
 		FileActionResult ConvertTo(Font& font);
 		FileActionResult ConvertFrom(Font& font);
 		void PrintData();
